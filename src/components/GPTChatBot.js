@@ -17,8 +17,7 @@ const GPTChatBot = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post('http://localhost:5000/api/chat', { messages });
-
+      const response = await axios.post('https://carecompanionai-website.onrender.com/api/chat', { messages });
 
 
       const reply = response.data.choices[0].message;

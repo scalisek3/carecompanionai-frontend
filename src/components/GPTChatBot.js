@@ -6,7 +6,7 @@ const GPTChatBot = () => {
     {
       role: 'system',
       content:
-        'You are CareCompanionAI, a friendly and helpful assistant designed to support seniors in California. You specialize in Medicare, Medicaid, and palliative care. Respond clearly, with empathy, and give concise and informative answers.'
+        'You are CareCompanionAI, a friendly and helpful assistant designed to support seniors in their Healthcare Journey. You specialize in Medicare, Medicaid, and all relative Healthcare options. Respond clearly, with empathy, and give concise and informative answers with suggestions on next steps.'
     }
   ]);
 
@@ -31,29 +31,35 @@ const GPTChatBot = () => {
       setMessages([...newMessages, assistantReply]);
     } catch (error) {
       console.error('Error:', error);
+      alert('Something went wrong. Please try again later.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div>
-      {/* Basic chat UI here */}
-      <div>
-        {messages.map((msg, index) => (
-          <div key={index}>
-            <strong>{msg.role === 'user' ? 'You' : msg.role === 'assistant' ? 'Bot' : 'System'}:</strong> {msg.content}
-          </div>
-        ))}
+    <div style={{ maxWidth: '600px', margin: '2rem auto', padding: '1rem', backgroundColor: '#f5f5f5', borderRadius: '8px' }}>
+      <h2 style={{ textAlign: 'center', marginBottom: '1rem' }}>💬 Ask CareCompanion AI</h2>
+      <div style={{ maxHeight: '300px', overflowY: 'auto', marginBottom: '1rem', backgroundColor: '#fff', padding: '1rem', borderRadius: '4px' }}>
+        {messages
+          .filter((msg) => msg.role !== 'system')
+          .map((msg, i) => (
+            <div key={i} style={{ marginBottom: '0.5rem' }}>
+              <strong>{msg.role === 'user' ? 'You' : 'Bot'}:</strong> {msg.content}
+            </div>
+          ))}
       </div>
-      <input
-        value={input}
-        onChange={e => setInput(e.target.value)}
-        placeholder="Type your message..."
-      />
-      <button onClick={handleSend} disabled={loading}>
-        {loading ? 'Sending...' : 'Send'}
-      </button>
+      <div style={{ display: 'flex', gap: '0.5rem' }}>
+        <input
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          placeholder="Type your message..."
+          style={{ flexGrow: 1, padding: '0.5rem' }}
+        />
+        <button onClick={handleSend} disabled={loading} style={{ padding: '0.5rem 1rem' }}>
+          {loading ? 'Sending...' : 'Send'}
+        </button>
+      </div>
     </div>
   );
 };

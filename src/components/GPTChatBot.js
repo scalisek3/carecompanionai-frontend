@@ -15,11 +15,15 @@ const GPTChatBot = () => {
     {
       role: 'system',
       content:
+<<<<<<< HEAD
         `You are CareCompanionAI, a warm and helpful AI assistant for seniors in California. You specialize in Medicare, Medicaid, UnitedHealthcare, and palliative care.
 
 When the user asks a question, answer it clearly, directly, and only ask follow-up questions if absolutely necessary. NEVER say “How can I help you today?” if a question has already been asked. Do not repeat yourself.
 
 Use step-by-step guidance, and tailor your response to the user’s location if provided. Keep your responses clear, compassionate, and useful.`
+=======
+        'You are CareCompanionAI, a friendly and helpful assistant designed to support seniors in their Healthcare Journey. You specialize in Medicare, Medicaid, and all relative Healthcare options. Respond clearly, with empathy, and give concise and informative answers with suggestions on next steps.'
+>>>>>>> 1376bcca10715402f635467c0590ca3a2549aa39
     }
   ]);
 
@@ -66,6 +70,7 @@ Use step-by-step guidance, and tailor your response to the user’s location if 
       setMessages([...newMessages, assistantReply]);
     } catch (error) {
       console.error('Error:', error);
+      alert('Something went wrong. Please try again later.');
     } finally {
       setLoading(false);
     }
@@ -95,8 +100,14 @@ Use step-by-step guidance, and tailor your response to the user’s location if 
   };
 
   return (
+<<<<<<< HEAD
     <div>
       <div style={{ maxHeight: '300px', overflowY: 'auto', backgroundColor: '#f8f8f8', padding: '1rem', borderRadius: '10px' }}>
+=======
+    <div style={{ maxWidth: '600px', margin: '2rem auto', padding: '1rem', backgroundColor: '#f5f5f5', borderRadius: '8px' }}>
+      <h2 style={{ textAlign: 'center', marginBottom: '1rem' }}>💬 Ask CareCompanion AI</h2>
+      <div style={{ maxHeight: '300px', overflowY: 'auto', marginBottom: '1rem', backgroundColor: '#fff', padding: '1rem', borderRadius: '4px' }}>
+>>>>>>> 1376bcca10715402f635467c0590ca3a2549aa39
         {messages
           .filter((msg) => msg.role !== 'system')
           .map((msg, i) => (
@@ -104,6 +115,7 @@ Use step-by-step guidance, and tailor your response to the user’s location if 
               <strong>{msg.role === 'user' ? 'You' : 'Bot'}:</strong> {msg.content}
             </div>
           ))}
+<<<<<<< HEAD
       </div>
       <input
         value={input}
@@ -117,6 +129,20 @@ Use step-by-step guidance, and tailor your response to the user’s location if 
       <button onClick={handleDownload} style={{ padding: '0.5rem 1rem', marginLeft: '0.5rem' }}>
         Download PDF
       </button>
+=======
+      </div>
+      <div style={{ display: 'flex', gap: '0.5rem' }}>
+        <input
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          placeholder="Type your message..."
+          style={{ flexGrow: 1, padding: '0.5rem' }}
+        />
+        <button onClick={handleSend} disabled={loading} style={{ padding: '0.5rem 1rem' }}>
+          {loading ? 'Sending...' : 'Send'}
+        </button>
+      </div>
+>>>>>>> 1376bcca10715402f635467c0590ca3a2549aa39
     </div>
   );
 };

@@ -59,6 +59,21 @@ Use step-by-step guidance, and tailor your response to the user’s location if 
     }
   };
 
+  const handleDownload = () => {
+    const doc = new jsPDF();
+    let y = 10;
+    messages.filter(m => m.role !== 'system').forEach((msg, index) => {
+      const label = msg.role === 'user' ? 'You: ' : 'Bot: ';
+      const lines = doc.splitTextToSize(`${label}${msg.content}`, 180);
+      lines.forEach(line => {
+        doc.text(line, 10, y);
+        y += 7;
+      });
+      y += 3;
+    });
+    doc.save('carecompanion-conversation.pdf');
+  };
+  
   return (
     <div>
       <div style={{ maxHeight: '300px', overflowY: 'auto', backgroundColor: '#f8f8f8', padding: '1rem', borderRadius: '10px' }}>

@@ -56,7 +56,7 @@ Use step-by-step guidance, and tailor your response to the user’s location if 
 
     try {
       const response = await axios.post(
-        'https://carecompanionai-website.onrender.com/api/chat-with-tools',
+        'https://carecompanionai-website.onrender.com/api/chat',
         { messages: newMessages }
       );
 

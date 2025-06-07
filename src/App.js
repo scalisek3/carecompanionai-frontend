@@ -13,7 +13,7 @@ function App() {
       <section style={{ padding: '3rem 2rem', backgroundColor: '#F1F7FB', textAlign: 'center' }}>
         <h2 style={{ fontSize: '2rem' }}>Navigate Healthcare with Confidence</h2>
         <p style={{ maxWidth: '600px', margin: '1rem auto' }}>
-          Your AI-powered assistant for understanding Medicare, avoiding surprise bills, and getting the care you need.
+          Your AI-powered assistant for Navigating your Healthcare, Avoiding Surprise Bills, and Getting the Care you Need Faster.
         </p>
         <button style={{ backgroundColor: '#2E86AB', color: 'white', border: 'none', padding: '0.8rem 1.5rem', fontSize: '1rem', borderRadius: '8px', cursor: 'pointer' }}>
           Get Started
@@ -45,15 +45,17 @@ function App() {
         <ul style={{ listStyle: 'none', padding: 0, maxWidth: '600px', margin: '1rem auto', lineHeight: '2rem' }}>
           <li>✅ Easy for seniors and caregivers to use</li>
           <li>✅ Prevent surprise medical bills</li>
-          <li>✅ Understand your Medicare options</li>
-          <li>✅ Get peace of mind from trusted AI help</li>
+          <li>✅ Understand your Medical options</li>
+          <li>✅ Get peace of mind from trusted and knowledgeable AI help</li>
         </ul>
       </section>
 
-      {/* Chatbot */}
-      <div style={{ position: 'fixed', bottom: '1rem', right: '1rem' }}>
-        <GPTChatBot />
-      </div>
+     {/* Chatbot Section */}
+<section style={{ backgroundColor: '#FAFAFA', padding: '2rem 1rem' }}>
+  <h3 style={{ textAlign: 'center', fontSize: '1.5rem', marginBottom: '1rem' }}>Ask the CareCompanion AI</h3>
+  <GPTChatBot />
+</section>
+
 
       {/* Footer */}
       <footer style={{ padding: '1rem', backgroundColor: '#f0f0f0', textAlign: 'center', fontSize: '0.9rem' }}>

@@ -1,5 +1,3 @@
-// CareCompanion AI Web App Prototype
-
 import React, { useState } from 'react';
 import axios from 'axios';
 import jsPDF from 'jspdf';
@@ -20,11 +18,7 @@ const GPTChatBot = () => {
 
 When the user asks a question, answer it clearly, directly, and only ask follow-up questions if absolutely necessary. NEVER say “How can I help you today?” if a question has already been asked. Do not repeat yourself.
 
-Use step-by-step guidance, and tailor your response to the user’s location if provided. Keep your responses clear, compassionate, and useful.`
-=======
-        'You are CareCompanionAI, a friendly and helpful assistant designed to support seniors in their Healthcare Journey. You specialize in Medicare, Medicaid, and all relative Healthcare options. Respond clearly, with empathy, and give concise and informative answers with suggestions on next steps.'
->>>>>>> 1376bcca10715402f635467c0590ca3a2549aa39
-    }
+Use step-by-step guidance, and tailor your response to the user’s location if provided. Keep your responses clear, compassionate, and useful.`}
   ]);
 
   const [input, setInput] = useState('');
@@ -60,9 +54,8 @@ Use step-by-step guidance, and tailor your response to the user’s location if 
     setInput('');
     setLoading(true);
 
-    try {
-      const response = await axios.post(
-        'https://carecompanionai-website.onrender.com/api/chat',
+    try {const response = await axios.post('https://carecompanionai-website.onrender.com/api/chat-with-tools', {
+',
         { messages: newMessages }
       );
 

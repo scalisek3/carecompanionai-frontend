@@ -13,7 +13,7 @@ const GPTChatBot = () => {
     {
       role: 'system',
       content:
-<<<<<<< HEAD
+
         `You are CareCompanionAI, a warm and helpful AI assistant for seniors in California. You specialize in Medicare, Medicaid, UnitedHealthcare, and palliative care.
 
 When the user asks a question, answer it clearly, directly, and only ask follow-up questions if absolutely necessary. NEVER say “How can I help you today?” if a question has already been asked. Do not repeat yourself.
@@ -57,6 +57,10 @@ Use step-by-step guidance, and tailor your response to the user’s location if 
     try {const response = await axios.post('https://carecompanionai-website.onrender.com/api/chat-with-tools', {
 ',
         { messages: newMessages }
+    try {
+      const response = await axios.post('https://carecompanionai-website.onrender.com/api/chat-with-tools',
+{ messages: newMessages }
+>>>>>>> d4d5c24 (Fix endpoint to match backend chat-with-tools route)
       );
 
       const assistantReply = response.data.choices[0].message;
@@ -93,7 +97,7 @@ Use step-by-step guidance, and tailor your response to the user’s location if 
   };
 
   return (
-<<<<<<< HEAD
+
     <div>
       <div style={{ maxHeight: '300px', overflowY: 'auto', backgroundColor: '#f8f8f8', padding: '1rem', borderRadius: '10px' }}>
 =======
@@ -108,7 +112,6 @@ Use step-by-step guidance, and tailor your response to the user’s location if 
               <strong>{msg.role === 'user' ? 'You' : 'Bot'}:</strong> {msg.content}
             </div>
           ))}
-<<<<<<< HEAD
       </div>
       <input
         value={input}
@@ -122,7 +125,6 @@ Use step-by-step guidance, and tailor your response to the user’s location if 
       <button onClick={handleDownload} style={{ padding: '0.5rem 1rem', marginLeft: '0.5rem' }}>
         Download PDF
       </button>
-=======
       </div>
       <div style={{ display: 'flex', gap: '0.5rem' }}>
         <input
@@ -135,7 +137,6 @@ Use step-by-step guidance, and tailor your response to the user’s location if 
           {loading ? 'Sending...' : 'Send'}
         </button>
       </div>
->>>>>>> 1376bcca10715402f635467c0590ca3a2549aa39
     </div>
   );
 };

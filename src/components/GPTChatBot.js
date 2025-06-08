@@ -54,13 +54,9 @@ Use step-by-step guidance, and tailor your response to the user’s location if 
     setInput('');
     setLoading(true);
 
-    try {const response = await axios.post('https://carecompanionai-website.onrender.com/api/chat-with-tools', {
-',
-        { messages: newMessages }
     try {
       const response = await axios.post('https://carecompanionai-website.onrender.com/api/chat-with-tools',
 { messages: newMessages }
->>>>>>> d4d5c24 (Fix endpoint to match backend chat-with-tools route)
       );
 
       const assistantReply = response.data.choices[0].message;

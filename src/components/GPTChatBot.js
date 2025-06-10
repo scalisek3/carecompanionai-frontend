@@ -72,57 +72,60 @@ Use step-by-step guidance, and tailor your response to the user’s location if 
     }
   };
 
-  const handleDownload = () => {
-    const doc = new jsPDF();
-    let y = 10;
-    const date = new Date().toLocaleString();
-    doc.setFontSize(10);
-    doc.text(`CareCompanionAI Conversation – ${date}`, 10, y);
-    y += 10;
-    messages.filter(m => m.role !== 'system').forEach((msg) => {
-      const label = msg.role === 'user' ? 'You: ' : 'Bot: ';
-      const lines = doc.splitTextToSize(`${label}${msg.content}`, 180);
-      lines.forEach(line => {
-        if (y > 280) {
-          doc.addPage();
-          y = 10;
-        }
-        doc.text(line, 10, y);
-        y += 7;
-      });
-      y += 3;
+const handleDownload = () => {
+  const doc = new jsPDF();
+  let y = 10;
+  const date = new Date().toLocaleString();
+  doc.setFontSize(10);
+  doc.text(`CareCompanionAI Conversation – ${date}`, 10, y);
+  y += 10;
+
+  messages.filter(m => m.role !== 'system').forEach((msg) => {
+    const label = msg.role === 'user' ? 'You: ' : 'Bot: ';
+    const lines = doc.splitTextToSize(`${label}${msg.content}`, 180);
+    lines.forEach(line => {
+      if (y > 280) {
+        doc.addPage();
+        y = 10;
+      }
+      doc.text(line, 10, y);
+      y += 7;
     });
-    doc.save('carecompanion-conversation.pdf');
-  };
+    y += 3;
+  });
+
+  doc.save('carecompanion-conversation.pdf');
+};
 
   return (
-    <div style={{ maxWidth: '600px', margin: '2rem auto', padding: '1rem', backgroundColor: '#f5f5f5', borderRadius: '8px' }}>
-      <h2 style={{ textAlign: 'center', marginBottom: '1rem' }}>💬 Ask CareCompanion AI</h2>
-      <div style={{ maxHeight: '300px', overflowY: 'auto', marginBottom: '1rem', backgroundColor: '#fff', padding: '1rem', borderRadius: '4px' }}>
-        {messages
-          .filter((msg) => msg.role !== 'system')
-          .map((msg, i) => (
-            <div key={i} style={{ marginBottom: '0.5rem' }}>
-              <strong>{msg.role === 'user' ? 'You' : 'Bot'}:</strong> {msg.content}
-            </div>
-          ))}
-      </div>
-      <div style={{ display: 'flex', gap: '0.5rem' }}>
-        <input
-          value={input}
-          onChange={e => setInput(e.target.value)}
-          placeholder="Type your message..."
-          style={{ flexGrow: 1, padding: '0.5rem' }}
-        />
-        <button onClick={handleSend} disabled={loading} style={{ padding: '0.5rem 1rem' }}>
-          {loading ? 'Sending...' : 'Send'}
-        </button>
-        <button onClick={handleDownload} style={{ padding: '0.5rem 1rem' }}>
-          Download PDF
-        </button>
-      </div>
+  <div style={{ maxWidth: '600px', margin: '2rem auto', padding: '1rem', backgroundColor: '#f5f5f5', borderRadius: '8px' }}>
+    <h2 style={{ textAlign: 'center', marginBottom: '1rem' }}>💬 Ask CareCompanion AI</h2>
+    <div style={{ maxHeight: '300px', overflowY: 'auto', marginBottom: '1rem', backgroundColor: '#fff', padding: '1rem', borderRadius: '4px' }}>
+      {messages
+        .filter((msg) => msg.role !== 'system')
+        .map((msg, i) => (
+          <div key={i} style={{ marginBottom: '0.5rem' }}>
+            <strong>{msg.role === 'user' ? 'You' : 'Bot'}:</strong> {msg.content}
+          </div>
+        ))}
     </div>
-  );
+    <div style={{ display: 'flex', gap: '0.5rem' }}>
+      <input
+        value={input}
+        onChange={e => setInput(e.target.value)}
+        placeholder="Type your message..."
+        style={{ flexGrow: 1, padding: '0.5rem' }}
+      />
+      <button onClick={handleSend} disabled={loading} style={{ padding: '0.5rem 1rem' }}>
+        {loading ? 'Sending...' : 'Send'}
+      </button>
+      <button onClick={handleDownload} style={{ padding: '0.5rem 1rem' }}>
+        Download PDF
+      </button>
+    </div>
+  </div>
+);
+
 };
 
 export default GPTChatBot;

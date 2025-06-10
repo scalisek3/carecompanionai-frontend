@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import axios from 'axios';
 import jsPDF from 'jspdf';
 
@@ -9,16 +10,16 @@ const extractLocation = (text) => {
 
 const GPTChatBot = () => {
   const [messages, setMessages] = useState([
-    {
-      role: 'system',
-      content:
+  {
+    role: 'system',
+    content: `You are CareCompanionAI, a warm and helpful AI assistant for seniors in California. You specialize in Medicare, Medicaid, UnitedHealthcare, and palliative care.
 
-        You are CareCompanionAI, a warm and helpful AI assistant for seniors in California. You specialize in Medicare, Medicaid, UnitedHealthcare, and palliative care.
+When the user asks a question, answer it clearly, directly, and only ask follow-up questions if absolutely necessary. NEVER say "How can I help you today?" if a question has already been asked. Do not repeat yourself.
 
-When the user asks a question, answer it clearly, directly, and only ask follow-up questions if absolutely necessary. NEVER say “How can I help you today?” if a question has already been asked. Do not repeat yourself.
+Use step-by-step guidance, and tailor your response to the user’s location if provided. Keep your responses clear, compassionate, and useful.`
+  }
+]);
 
-Use step-by-step guidance, and tailor your response to the user’s location if provided. Keep your responses clear, compassionate, and useful.}
-  ]);
 
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -30,7 +31,7 @@ Use step-by-step guidance, and tailor your response to the user’s location if 
     const locationMessage = location
       ? {
           role: 'system',
-          content: User is located in ${location}. Tailor your guidance accordingly.
+          content: `User is located in ${location}. Tailor your guidance accordingly.`
         }
       : null;
 
@@ -54,8 +55,9 @@ Use step-by-step guidance, and tailor your response to the user’s location if 
     setLoading(true);
 
     try {
-      const response = await axios.post('https://carecompanionai-website.onrender.com/api/chat-with-tools',
-{ messages: newMessages }
+      const response = await axios.post(
+        'https://carecompanionai-website.onrender.com/api/chat-with-tools',
+        { messages: newMessages }
       );
 
       const assistantReply = response.data.choices[0].message;
@@ -73,11 +75,11 @@ Use step-by-step guidance, and tailor your response to the user’s location if 
     let y = 10;
     const date = new Date().toLocaleString();
     doc.setFontSize(10);
-    doc.text(CareCompanionAI Conversation – ${date}, 10, y);
+    doc.text(`CareCompanionAI Conversation – ${date}`, 10, y);
     y += 10;
     messages.filter(m => m.role !== 'system').forEach((msg) => {
       const label = msg.role === 'user' ? 'You: ' : 'Bot: ';
-      const lines = doc.splitTextToSize(${label}${msg.content}, 180);
+      const lines = doc.splitTextToSize(`${label}${msg.content}`, 180);
       lines.forEach(line => {
         if (y > 280) {
           doc.addPage();
@@ -91,33 +93,34 @@ Use step-by-step guidance, and tailor your response to the user’s location if 
     doc.save('carecompanion-conversation.pdf');
   };
 
-return (
-  <div style={{ maxWidth: '600px', margin: '2rem auto', padding: '1rem', backgroundColor: '#f5f5f5', borderRadius: '8px' }}>
-    <h2 style={{ textAlign: 'center', marginBottom: '1rem' }}>💬 Ask CareCompanion AI</h2>
-    <div style={{ maxHeight: '300px', overflowY: 'auto', marginBottom: '1rem', backgroundColor: '#fff', padding: '1rem', borderRadius: '4px' }}>
-      {messages
-        .filter((msg) => msg.role !== 'system')
-        .map((msg, i) => (
-          <div key={i} style={{ marginBottom: '0.5rem' }}>
-            <strong>{msg.role === 'user' ? 'You' : 'Bot'}:</strong> {msg.content}
-          </div>
-        ))}
+  return (
+    <div style={{ maxWidth: '600px', margin: '2rem auto', padding: '1rem', backgroundColor: '#f5f5f5', borderRadius: '8px' }}>
+      <h2 style={{ textAlign: 'center', marginBottom: '1rem' }}>💬 Ask CareCompanion AI</h2>
+      <div style={{ maxHeight: '300px', overflowY: 'auto', marginBottom: '1rem', backgroundColor: '#fff', padding: '1rem', borderRadius: '4px' }}>
+        {messages
+          .filter((msg) => msg.role !== 'system')
+          .map((msg, i) => (
+            <div key={i} style={{ marginBottom: '0.5rem' }}>
+              <strong>{msg.role === 'user' ? 'You' : 'Bot'}:</strong> {msg.content}
+            </div>
+          ))}
+      </div>
+      <div style={{ display: 'flex', gap: '0.5rem' }}>
+        <input
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          placeholder="Type your message..."
+          style={{ flexGrow: 1, padding: '0.5rem' }}
+        />
+        <button onClick={handleSend} disabled={loading} style={{ padding: '0.5rem 1rem' }}>
+          {loading ? 'Sending...' : 'Send'}
+        </button>
+        <button onClick={handleDownload} style={{ padding: '0.5rem 1rem' }}>
+          Download PDF
+        </button>
+      </div>
     </div>
-    <div style={{ display: 'flex', gap: '0.5rem' }}>
-      <input
-        value={input}
-        onChange={e => setInput(e.target.value)}
-        placeholder="Type your message..."
-        style={{ flexGrow: 1, padding: '0.5rem' }}
-      />
-      <button onClick={handleSend} disabled={loading} style={{ padding: '0.5rem 1rem' }}>
-        {loading ? 'Sending...' : 'Send'}
-      </button>
-      <button onClick={handleDownload} style={{ padding: '0.5rem 1rem' }}>
-        Download PDF
-      </button>
-    </div>
-  </div>
-);
+  );
+};
 
 export default GPTChatBot;

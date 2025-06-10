@@ -1,4 +1,3 @@
-import React, { useState } from 'react';
 import axios from 'axios';
 import jsPDF from 'jspdf';
 
@@ -14,11 +13,11 @@ const GPTChatBot = () => {
       role: 'system',
       content:
 
-        `You are CareCompanionAI, a warm and helpful AI assistant for seniors in California. You specialize in Medicare, Medicaid, UnitedHealthcare, and palliative care.
+        You are CareCompanionAI, a warm and helpful AI assistant for seniors in California. You specialize in Medicare, Medicaid, UnitedHealthcare, and palliative care.
 
 When the user asks a question, answer it clearly, directly, and only ask follow-up questions if absolutely necessary. NEVER say “How can I help you today?” if a question has already been asked. Do not repeat yourself.
 
-Use step-by-step guidance, and tailor your response to the user’s location if provided. Keep your responses clear, compassionate, and useful.`}
+Use step-by-step guidance, and tailor your response to the user’s location if provided. Keep your responses clear, compassionate, and useful.}
   ]);
 
   const [input, setInput] = useState('');
@@ -31,7 +30,7 @@ Use step-by-step guidance, and tailor your response to the user’s location if 
     const locationMessage = location
       ? {
           role: 'system',
-          content: `User is located in ${location}. Tailor your guidance accordingly.`
+          content: User is located in ${location}. Tailor your guidance accordingly.
         }
       : null;
 
@@ -74,11 +73,11 @@ Use step-by-step guidance, and tailor your response to the user’s location if 
     let y = 10;
     const date = new Date().toLocaleString();
     doc.setFontSize(10);
-    doc.text(`CareCompanionAI Conversation – ${date}`, 10, y);
+    doc.text(CareCompanionAI Conversation – ${date}, 10, y);
     y += 10;
     messages.filter(m => m.role !== 'system').forEach((msg) => {
       const label = msg.role === 'user' ? 'You: ' : 'Bot: ';
-      const lines = doc.splitTextToSize(`${label}${msg.content}`, 180);
+      const lines = doc.splitTextToSize(${label}${msg.content}, 180);
       lines.forEach(line => {
         if (y > 280) {
           doc.addPage();
@@ -92,49 +91,33 @@ Use step-by-step guidance, and tailor your response to the user’s location if 
     doc.save('carecompanion-conversation.pdf');
   };
 
-  return (
-
-    <div>
-      <div style={{ maxHeight: '300px', overflowY: 'auto', backgroundColor: '#f8f8f8', padding: '1rem', borderRadius: '10px' }}>
-=======
-    <div style={{ maxWidth: '600px', margin: '2rem auto', padding: '1rem', backgroundColor: '#f5f5f5', borderRadius: '8px' }}>
-      <h2 style={{ textAlign: 'center', marginBottom: '1rem' }}>💬 Ask CareCompanion AI</h2>
-      <div style={{ maxHeight: '300px', overflowY: 'auto', marginBottom: '1rem', backgroundColor: '#fff', padding: '1rem', borderRadius: '4px' }}>
->>>>>>> 1376bcca10715402f635467c0590ca3a2549aa39
-        {messages
-          .filter((msg) => msg.role !== 'system')
-          .map((msg, i) => (
-            <div key={i} style={{ marginBottom: '0.5rem' }}>
-              <strong>{msg.role === 'user' ? 'You' : 'Bot'}:</strong> {msg.content}
-            </div>
-          ))}
-      </div>
+return (
+  <div style={{ maxWidth: '600px', margin: '2rem auto', padding: '1rem', backgroundColor: '#f5f5f5', borderRadius: '8px' }}>
+    <h2 style={{ textAlign: 'center', marginBottom: '1rem' }}>💬 Ask CareCompanion AI</h2>
+    <div style={{ maxHeight: '300px', overflowY: 'auto', marginBottom: '1rem', backgroundColor: '#fff', padding: '1rem', borderRadius: '4px' }}>
+      {messages
+        .filter((msg) => msg.role !== 'system')
+        .map((msg, i) => (
+          <div key={i} style={{ marginBottom: '0.5rem' }}>
+            <strong>{msg.role === 'user' ? 'You' : 'Bot'}:</strong> {msg.content}
+          </div>
+        ))}
+    </div>
+    <div style={{ display: 'flex', gap: '0.5rem' }}>
       <input
         value={input}
-        onChange={(e) => setInput(e.target.value)}
+        onChange={e => setInput(e.target.value)}
         placeholder="Type your message..."
-        style={{ padding: '0.5rem', width: '70%' }}
+        style={{ flexGrow: 1, padding: '0.5rem' }}
       />
-      <button onClick={handleSend} disabled={loading} style={{ padding: '0.5rem 1rem', marginLeft: '0.5rem' }}>
+      <button onClick={handleSend} disabled={loading} style={{ padding: '0.5rem 1rem' }}>
         {loading ? 'Sending...' : 'Send'}
       </button>
-      <button onClick={handleDownload} style={{ padding: '0.5rem 1rem', marginLeft: '0.5rem' }}>
+      <button onClick={handleDownload} style={{ padding: '0.5rem 1rem' }}>
         Download PDF
       </button>
-      </div>
-      <div style={{ display: 'flex', gap: '0.5rem' }}>
-        <input
-          value={input}
-          onChange={e => setInput(e.target.value)}
-          placeholder="Type your message..."
-          style={{ flexGrow: 1, padding: '0.5rem' }}
-        />
-        <button onClick={handleSend} disabled={loading} style={{ padding: '0.5rem 1rem' }}>
-          {loading ? 'Sending...' : 'Send'}
-        </button>
-      </div>
     </div>
-  );
-};
+  </div>
+);
 
 export default GPTChatBot;

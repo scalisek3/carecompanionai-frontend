@@ -14,11 +14,12 @@ const GPTChatBot = () => {
   const [messages, setMessages] = useState([
     {
       role: 'system',
-      content: `You are CareCompanionAI, a warm and helpful AI assistant for seniors in California. You specialize in Medicare, Medicaid, UnitedHealthcare, and palliative care.
+      content: `You are CareCompanionAI, a warm and helpful AI Assistant for seniors in California. You specialize in Medicare, Medicaid, UnitedHealthcare, and General Health Care knowledge.
 
 When the user asks a question, answer it clearly, directly, and only ask follow-up questions if absolutely necessary. NEVER say “How can I help you today?” if a question has already been asked. Do not repeat yourself.
 
-Use step-by-step guidance, and tailor your response to the user’s location if provided. Keep your responses clear, compassionate, and useful.`
+Use step-by-step guidance, and tailor your response to the user’s location if provided. Keep your responses clear, compassionate, and useful. Suggest questions for the user to ask their provider if applicable.`
+
     }
   ]);
   const [input, setInput] = useState('');
@@ -128,12 +129,12 @@ Use step-by-step guidance, and tailor your response to the user’s location if 
       });
       y += 3;
     });
-    doc.save('carecompanion-conversation.pdf');
+    doc.save('carecompanionai-conversation.pdf');
   };
 
   return (
     <div style={{ maxWidth: '600px', margin: '1rem auto', padding: '1rem', backgroundColor: '#f9f9f9', borderRadius: '8px' }}>
-      <h2 style={{ textAlign: 'center', marginBottom: '1rem' }}>💬 Chat with the CareCompanion AI Chatbot</h2>
+      <h2 style={{ textAlign: 'center', marginBottom: '1rem' }}>💬 Chat with the CareCompanionAI Specialist</h2>
       <div style={{ maxHeight: '300px', overflowY: 'auto', marginBottom: '1rem', backgroundColor: '#fff', padding: '1rem', borderRadius: '4px' }}>
         {messages
           .filter((msg) => msg.role !== 'system')

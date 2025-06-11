@@ -19,23 +19,23 @@ function App() {
       {/* Main content */}
       <div style={{ flex: 1, overflowY: 'auto' }}>
         {/* Hero Section */}
-<section style={{ padding: '2rem', backgroundColor: '#F1F7FB', textAlign: 'center' }}>
+<section style={{ padding: '2rem 1rem', backgroundColor: '#F1F7FB', textAlign: 'center' }}>
   <img
     src="/images/hero.png"
     alt="CareCompanionAI - robot and human hand"
-    style={{ maxWidth: '100%', height: 'auto', marginBottom: '1rem' }}
+    style={{ maxWidth: '300px', height: 'auto', margin: '0 auto 1rem' }}
   />
-  <h2 style={{ fontSize: '2rem' }}>Navigate Healthcare with Confidence</h2>
-  <p style={{ maxWidth: '600px', margin: '1rem auto' }}>
-    Your AI-powered assistant for Navigating your Healthcare, Avoiding Surprise Bills, and Getting your Healthcare Questions Answered.
+  <h2 style={{ fontSize: '1rem', margin: '0.5rem 0' }}>Navigate Healthcare with Confidence</h2>
+  <p style={{ maxWidth: '600px', margin: '0 auto 1rem', fontSize: '1rem' }}>
+    Your AI-powered assistant for navigating your healthcare, avoiding surprise bills, and getting your healthcare questions answered.
   </p>
   <button style={{
     backgroundColor: '#2E86AB',
     color: 'white',
     border: 'none',
-    padding: '0.8rem 1.5rem',
+    padding: '0.6rem 1.2rem',
     fontSize: '1rem',
-    borderRadius: '8px',
+    borderRadius: '6px',
     cursor: 'pointer'
   }}>
     Get Started
@@ -43,8 +43,9 @@ function App() {
 </section>
 
 
+
         {/* How It Works */}
-        <section style={{ padding: '1.5rem 1rem', textAlign: 'center' }}>
+        <section style={{ padding: '1rem', textAlign: 'center' }}>
           <h3 style={{ fontSize: '1.25rem' }}>How It Works</h3>
           <div style={{ display: 'flex', justifyContent: 'center', gap: '1.5rem', marginTop: '1rem', flexWrap: 'wrap' }}>
             <div style={{ maxWidth: '220px' }}>

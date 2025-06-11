@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import jsPDF from 'jspdf';
+
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
 const extractLocation = (text) => {
   const locationRegex = /\b(in|near|around|from|to) ([A-Z][a-z]+(?:,?\s?[A-Z]{2})?)\b/;
@@ -19,9 +21,46 @@ When the user asks a question, answer it clearly, directly, and only ask follow-
 Use step-by-step guidance, and tailor your response to the user’s location if provided. Keep your responses clear, compassionate, and useful.`
     }
   ]);
-
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [listening, setListening] = useState(false);
+  const recognitionRef = useRef(null);
+
+  useEffect(() => {
+    if (SpeechRecognition) {
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = false;
+      recognitionRef.current.interimResults = false;
+      recognitionRef.current.lang = 'en-US';
+
+      recognitionRef.current.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        setInput(transcript);
+        setListening(false);
+      };
+
+      recognitionRef.current.onend = () => setListening(false);
+      recognitionRef.current.onerror = (e) => {
+        console.error('Speech recognition error:', e);
+        setListening(false);
+      };
+    }
+  }, []);
+
+  const toggleMic = () => {
+    if (!SpeechRecognition) {
+      alert('Voice input is not supported in this browser.');
+      return;
+    }
+
+    if (listening) {
+      recognitionRef.current.stop();
+      setListening(false);
+    } else {
+      recognitionRef.current.start();
+      setListening(true);
+    }
+  };
 
   const handleSend = async () => {
     if (!input.trim()) return;
@@ -104,18 +143,21 @@ Use step-by-step guidance, and tailor your response to the user’s location if 
             </div>
           ))}
       </div>
-      <div style={{ display: 'flex', gap: '0.5rem' }}>
+      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
         <input
           value={input}
           onChange={e => setInput(e.target.value)}
-          placeholder="Type your message..."
+          placeholder="Type or use mic..."
           style={{ flexGrow: 1, padding: '0.5rem' }}
         />
         <button onClick={handleSend} disabled={loading} style={{ padding: '0.5rem 1rem' }}>
           {loading ? 'Sending...' : 'Send'}
         </button>
+        <button onClick={toggleMic} style={{ padding: '0.5rem 1rem', backgroundColor: listening ? '#e57373' : '#90caf9' }}>
+          {listening ? '🎤 Listening...' : '🎙️ Speak'}
+        </button>
         <button onClick={handleDownload} style={{ padding: '0.5rem 1rem' }}>
-          Download PDF
+          📄 Save
         </button>
       </div>
     </div>

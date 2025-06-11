@@ -3,62 +3,71 @@ import GPTChatBot from './components/GPTChatBot';
 
 function App() {
   return (
-    <div style={{ fontFamily: 'Arial, sans-serif', color: '#333' }}>
+    <div style={{
+      fontFamily: 'Arial, sans-serif',
+      color: '#333',
+      height: '100vh',
+      display: 'flex',
+      flexDirection: 'column',
+      overflow: 'hidden'
+    }}>
       {/* Header */}
-      <header style={{ backgroundColor: '#2E86AB', color: 'white', padding: '1rem 2rem' }}>
-        <h1 style={{ margin: 0 }}>CareCompanion AI</h1>
+      <header style={{ backgroundColor: '#2E86AB', color: 'white', padding: '0.8rem 1.5rem' }}>
+        <h1 style={{ margin: 0, fontSize: '1.5rem' }}>CareCompanion AI</h1>
       </header>
 
-      {/* Hero Section */}
-      <section style={{ padding: '3rem 2rem', backgroundColor: '#F1F7FB', textAlign: 'center' }}>
-        <h2 style={{ fontSize: '2rem' }}>Navigate Healthcare with Confidence</h2>
-        <p style={{ maxWidth: '600px', margin: '1rem auto' }}>
-          Your AI-powered assistant for Navigating your Healthcare, Avoiding Surprise Bills, and Getting the Care you Need Faster.
-        </p>
-        <button style={{ backgroundColor: '#2E86AB', color: 'white', border: 'none', padding: '0.8rem 1.5rem', fontSize: '1rem', borderRadius: '8px', cursor: 'pointer' }}>
-          Get Started
-        </button>
-      </section>
+      {/* Main content */}
+      <div style={{ flex: 1, overflowY: 'auto' }}>
+        {/* Hero Section */}
+        <section style={{ padding: '1.5rem 1rem', backgroundColor: '#F1F7FB', textAlign: 'center' }}>
+          <h2 style={{ fontSize: '1.5rem' }}>Navigate Healthcare with Confidence</h2>
+          <p style={{ maxWidth: '600px', margin: '0.5rem auto' }}>
+            Your AI-powered assistant for navigating healthcare, avoiding surprise bills, and getting your questions answered.
+          </p>
+          <button style={{ backgroundColor: '#2E86AB', color: 'white', border: 'none', padding: '0.6rem 1.2rem', fontSize: '1rem', borderRadius: '8px', cursor: 'pointer' }}>
+            Get Started
+          </button>
+        </section>
 
-      {/* How It Works */}
-      <section style={{ padding: '2rem', textAlign: 'center' }}>
-        <h3 style={{ fontSize: '1.5rem' }}>How It Works</h3>
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '2rem', marginTop: '1.5rem', flexWrap: 'wrap' }}>
-          <div style={{ maxWidth: '250px' }}>
-            <h4>1. Ask a Question</h4>
-            <p>Type or speak your healthcare question into the AI assistant.</p>
+        {/* How It Works */}
+        <section style={{ padding: '1.5rem 1rem', textAlign: 'center' }}>
+          <h3 style={{ fontSize: '1.25rem' }}>How It Works</h3>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '1.5rem', marginTop: '1rem', flexWrap: 'wrap' }}>
+            <div style={{ maxWidth: '220px' }}>
+              <h4>1. Ask a Question</h4>
+              <p>Type or speak your healthcare question into the AI assistant.</p>
+            </div>
+            <div style={{ maxWidth: '220px' }}>
+              <h4>2. Get Clear Answers</h4>
+              <p>Receive step-by-step guidance tailored to your situation.</p>
+            </div>
+            <div style={{ maxWidth: '220px' }}>
+              <h4>3. Take Action</h4>
+              <p>Know what to do next — no confusion, no stress.</p>
+            </div>
           </div>
-          <div style={{ maxWidth: '250px' }}>
-            <h4>2. Get Clear Answers</h4>
-            <p>Receive step-by-step guidance tailored to your situation.</p>
-          </div>
-          <div style={{ maxWidth: '250px' }}>
-            <h4>3. Take Action</h4>
-            <p>Know what to do next — no confusion, no stress.</p>
-          </div>
-        </div>
+        </section>
+
+        {/* Benefits Section */}
+        <section style={{ backgroundColor: '#E8F5E9', padding: '1.5rem 1rem', textAlign: 'center' }}>
+          <h3 style={{ fontSize: '1.25rem' }}>Why CareCompanion AI?</h3>
+          <ul style={{ listStyle: 'none', padding: 0, maxWidth: '600px', margin: '0.5rem auto', lineHeight: '1.8rem' }}>
+            <li>✅ Easy for seniors and caregivers to use</li>
+            <li>✅ Prevent surprise medical bills</li>
+            <li>✅ Understand your medical options</li>
+            <li>✅ Get peace of mind from trusted and knowledgeable AI help</li>
+          </ul>
+        </section>
+      </div>
+
+      {/* Chatbot Section */}
+      <section style={{ backgroundColor: '#FAFAFA', padding: '1rem', borderTop: '1px solid #ddd' }}>
+        <h3 style={{ textAlign: 'center', fontSize: '1.25rem', marginBottom: '0.5rem' }}>CareCompanion AI</h3>
+        <GPTChatBot />
       </section>
-
-      {/* Benefits Section */}
-      <section style={{ backgroundColor: '#E8F5E9', padding: '2rem', textAlign: 'center' }}>
-        <h3 style={{ fontSize: '1.5rem' }}>Why CareCompanion AI?</h3>
-        <ul style={{ listStyle: 'none', padding: 0, maxWidth: '600px', margin: '1rem auto', lineHeight: '2rem' }}>
-          <li>✅ Easy for seniors and caregivers to use</li>
-          <li>✅ Prevent surprise medical bills</li>
-          <li>✅ Understand your Medical options</li>
-          <li>✅ Get peace of mind from trusted and knowledgeable AI help</li>
-        </ul>
-      </section>
-
-     {/* Chatbot Section */}
-<section style={{ backgroundColor: '#FAFAFA', padding: '2rem 1rem' }}>
-  <h3 style={{ textAlign: 'center', fontSize: '1.5rem', marginBottom: '1rem' }}>Ask the CareCompanion AI</h3>
-  <GPTChatBot />
-</section>
-
 
       {/* Footer */}
-      <footer style={{ padding: '1rem', backgroundColor: '#f0f0f0', textAlign: 'center', fontSize: '0.9rem' }}>
+      <footer style={{ padding: '0.5rem', backgroundColor: '#f0f0f0', textAlign: 'center', fontSize: '0.8rem' }}>
         &copy; {new Date().getFullYear()} CareCompanion AI. All rights reserved.
       </footer>
     </div>

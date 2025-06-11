@@ -132,7 +132,7 @@ Use step-by-step guidance, and tailor your response to the user’s location if 
   };
 
   return (
-    <div style={{ maxWidth: '600px', margin: '2rem auto', padding: '1rem', backgroundColor: '#f5f5f5', borderRadius: '8px' }}>
+    <div style={{ maxWidth: '600px', margin: '1rem auto', padding: '1rem', backgroundColor: '#f9f9f9', borderRadius: '8px' }}>
       <h2 style={{ textAlign: 'center', marginBottom: '1rem' }}>💬 Chat with the CareCompanion AI Chatbot</h2>
       <div style={{ maxHeight: '300px', overflowY: 'auto', marginBottom: '1rem', backgroundColor: '#fff', padding: '1rem', borderRadius: '4px' }}>
         {messages

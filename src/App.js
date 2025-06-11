@@ -13,21 +13,35 @@ function App() {
     }}>
       {/* Header */}
       <header style={{ backgroundColor: '#2E86AB', color: 'white', padding: '0.8rem 1.5rem' }}>
-        <h1 style={{ margin: 0, fontSize: '1.5rem' }}>CareCompanion AI</h1>
+        <h1 style={{ margin: 0, fontSize: '1.5rem' }}>CareCompanionAI</h1>
       </header>
 
       {/* Main content */}
       <div style={{ flex: 1, overflowY: 'auto' }}>
         {/* Hero Section */}
-        <section style={{ padding: '1.5rem 1rem', backgroundColor: '#F1F7FB', textAlign: 'center' }}>
-          <h2 style={{ fontSize: '1.5rem' }}>Navigate Healthcare with Confidence</h2>
-          <p style={{ maxWidth: '600px', margin: '0.5rem auto' }}>
-            Your AI-powered assistant for navigating healthcare, avoiding surprise bills, and getting your questions answered.
-          </p>
-          <button style={{ backgroundColor: '#2E86AB', color: 'white', border: 'none', padding: '0.6rem 1.2rem', fontSize: '1rem', borderRadius: '8px', cursor: 'pointer' }}>
-            Get Started
-          </button>
-        </section>
+<section style={{ padding: '2rem', backgroundColor: '#F1F7FB', textAlign: 'center' }}>
+  <img
+    src="/images/hero.png"
+    alt="CareCompanionAI - robot and human hand"
+    style={{ maxWidth: '100%', height: 'auto', marginBottom: '1rem' }}
+  />
+  <h2 style={{ fontSize: '2rem' }}>Navigate Healthcare with Confidence</h2>
+  <p style={{ maxWidth: '600px', margin: '1rem auto' }}>
+    Your AI-powered assistant for Navigating your Healthcare, Avoiding Surprise Bills, and Getting your Healthcare Questions Answered.
+  </p>
+  <button style={{
+    backgroundColor: '#2E86AB',
+    color: 'white',
+    border: 'none',
+    padding: '0.8rem 1.5rem',
+    fontSize: '1rem',
+    borderRadius: '8px',
+    cursor: 'pointer'
+  }}>
+    Get Started
+  </button>
+</section>
+
 
         {/* How It Works */}
         <section style={{ padding: '1.5rem 1rem', textAlign: 'center' }}>

@@ -144,27 +144,23 @@ Use step-by-step guidance, and tailor your response to the user’s location if 
           ))}
       </div>
       <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-       <section style={{ backgroundColor: '#FAFAFA', padding: '1rem', borderTop: '1px solid #ddd' }}>
-       <h3 style={{ textAlign: 'center', fontSize: '1.25rem', marginBottom: '0.5rem' }}>CareCompanion AI</h3>
-       <GPTChatBot />
-         </section>
+  <input
+    value={input}
+    onChange={e => setInput(e.target.value)}
+    placeholder="Type or use mic..."
+    style={{ flexGrow: 1, padding: '0.5rem' }}
+  />
+  <button onClick={handleSend} disabled={loading} style={{ padding: '0.5rem 1rem' }}>
+    {loading ? 'Sending...' : 'Send'}
+  </button>
+  <button onClick={toggleMic} style={{ padding: '0.5rem 1rem', backgroundColor: listening ? '#e57373' : '#90caf9' }}>
+    {listening ? '🎤 Listening...' : '🎙️ Speak'}
+  </button>
+  <button onClick={handleDownload} style={{ padding: '0.5rem 1rem' }}>
+    📄 Save
+  </button>
+</div>
 
-        <input
-          value={input}
-          onChange={e => setInput(e.target.value)}
-          placeholder="Type or use mic..."
-          style={{ flexGrow: 1, padding: '0.5rem' }}
-        />
-        <button onClick={handleSend} disabled={loading} style={{ padding: '0.5rem 1rem' }}>
-          {loading ? 'Sending...' : 'Send'}
-        </button>
-        <button onClick={toggleMic} style={{ padding: '0.5rem 1rem', backgroundColor: listening ? '#e57373' : '#90caf9' }}>
-          {listening ? '🎤 Listening...' : '🎙️ Speak'}
-        </button>
-        <button onClick={handleDownload} style={{ padding: '0.5rem 1rem' }}>
-          📄 Save
-        </button>
-      </div>
     </div>
   );
 };

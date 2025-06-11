@@ -144,6 +144,11 @@ Use step-by-step guidance, and tailor your response to the user’s location if 
           ))}
       </div>
       <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+       <section style={{ backgroundColor: '#FAFAFA', padding: '1rem', borderTop: '1px solid #ddd' }}>
+       <h3 style={{ textAlign: 'center', fontSize: '1.25rem', marginBottom: '0.5rem' }}>CareCompanion AI</h3>
+       <GPTChatBot />
+         </section>
+
         <input
           value={input}
           onChange={e => setInput(e.target.value)}

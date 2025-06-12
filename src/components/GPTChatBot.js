@@ -10,20 +10,31 @@ const extractLocation = (text) => {
   return match ? match[2] : null;
 };
 
-// Smart follow-up prompt builder
 const generateSmartPrompt = (text) => {
   const triggers = [
-    { keywords: ['mri', 'scan', 'imaging'], prompt: 'Ask if this procedure requires pre-authorization from UnitedHealthcare or if there are preferred imaging centers.' },
-    { keywords: ['blood test', 'lab', 'cbc', 'lipid'], prompt: 'Ask if you need to complete a fasting blood test before the procedure or visit a specific lab in-network.' },
-    { keywords: ['specialist', 'referral', 'consult'], prompt: 'Check if you need a referral from your primary doctor before seeing the specialist.' },
-    { keywords: ['medication', 'prescription', 'pharmacy'], prompt: 'Verify if this medication is covered by your UnitedHealthcare plan and whether prior authorization is needed.' }
+    {
+      keywords: ['mri', 'scan', 'imaging'],
+      prompt: 'Ask if this procedure requires pre-authorization from UnitedHealthcare or if there are preferred imaging centers.'
+    },
+    {
+      keywords: ['blood test', 'lab', 'cbc', 'lipid'],
+      prompt: 'Ask if you need a fasting blood test beforehand or must use a specific in-network lab.'
+    },
+    {
+      keywords: ['specialist', 'referral', 'consult'],
+      prompt: 'Check if a referral is needed from your primary care provider to see this specialist.'
+    },
+    {
+      keywords: ['medication', 'prescription', 'pharmacy'],
+      prompt: 'Confirm if the medication is covered by UnitedHealthcare and if prior authorization is required.'
+    }
   ];
 
-  for (let { keywords, prompt } of triggers) {
+  for (const { keywords, prompt } of triggers) {
     if (keywords.some(k => text.toLowerCase().includes(k))) {
       return {
         role: 'system',
-        content: `The user has mentioned a medical service or procedure. You should guide them to confirm things like prior authorization, required labs, referrals, or coverage under their UnitedHealthcare plan. Example: "${prompt}"`
+        content: `The user has mentioned a medical topic that may involve extra steps. Remind them to consider: ${prompt}`
       };
     }
   }
@@ -35,9 +46,9 @@ const GPTChatBot = () => {
   const [messages, setMessages] = useState([
     {
       role: 'system',
-      content: `You are CareCompanionAI, a warm and helpful AI Assistant for seniors in California. You specialize in Medicare, Medicaid, UnitedHealthcare, and General Health Care.
+      content: `You are CareCompanionAI, a warm and helpful AI assistant for seniors in California. You specialize in Medicare, Medicaid, UnitedHealthcare, and General Health Care.
 
-When the user asks a question, answer it clearly and compassionately. Provide step-by-step suggestions and prompt the user with questions they should ask their provider (e.g., about lab tests, prior authorizations, referrals, costs, and timing).`
+Answer questions clearly and compassionately. Offer step-by-step advice. Prompt users to ask about lab tests, prior authorizations, referrals, out-of-pocket costs, and timing when relevant.`
     }
   ]);
 
@@ -75,11 +86,10 @@ When the user asks a question, answer it clearly and compassionately. Provide st
 
     if (listening) {
       recognitionRef.current.stop();
-      setListening(false);
     } else {
       recognitionRef.current.start();
-      setListening(true);
     }
+    setListening(!listening);
   };
 
   const handleSend = async () => {
@@ -88,7 +98,7 @@ When the user asks a question, answer it clearly and compassionately. Provide st
     const location = extractLocation(input);
     const locationMessage = location ? {
       role: 'system',
-      content: `The user is located in ${location}. Tailor your guidance accordingly.`
+      content: `The user is located in ${location}. Tailor your response accordingly.`
     } : null;
 
     const smartPrompt = generateSmartPrompt(input);
@@ -97,7 +107,7 @@ When the user asks a question, answer it clearly and compassionately. Provide st
     const preventRepetitionMessage = lastUserMessage && lastUserMessage.content === input.trim()
       ? {
           role: 'system',
-          content: 'The user is repeating their last question. Avoid generic intros or repetition.'
+          content: 'The user repeated their last question. Please avoid restating the same information.'
         }
       : null;
 
@@ -118,6 +128,7 @@ When the user asks a question, answer it clearly and compassionately. Provide st
         'https://carecompanionai-website.onrender.com/api/chat-with-tools',
         { messages: newMessages }
       );
+
       const assistantReply = response.data.choices[0].message;
       setMessages([...newMessages, assistantReply]);
     } catch (error) {
@@ -135,6 +146,7 @@ When the user asks a question, answer it clearly and compassionately. Provide st
     doc.setFontSize(10);
     doc.text(`CareCompanionAI Conversation – ${date}`, 10, y);
     y += 10;
+
     messages.filter(m => m.role !== 'system').forEach((msg) => {
       const label = msg.role === 'user' ? 'You: ' : 'Bot: ';
       const lines = doc.splitTextToSize(`${label}${msg.content}`, 180);
@@ -148,26 +160,25 @@ When the user asks a question, answer it clearly and compassionately. Provide st
       });
       y += 3;
     });
+
     doc.save('carecompanionai-conversation.pdf');
   };
 
   return (
     <div style={{ maxWidth: '600px', margin: '1rem auto', padding: '1rem', backgroundColor: '#f9f9f9', borderRadius: '8px' }}>
-      <h2 style={{ textAlign: 'center', marginBottom: '1rem' }}>💬 Chat with the CareCompanionAI Specialist</h2>
+      <h2 style={{ textAlign: 'center', marginBottom: '1rem' }}>💬 Chat with CareCompanion AI</h2>
       <div style={{ maxHeight: '300px', overflowY: 'auto', marginBottom: '1rem', backgroundColor: '#fff', padding: '1rem', borderRadius: '4px' }}>
-        {messages
-          .filter((msg) => msg.role !== 'system')
-          .map((msg, i) => (
-            <div key={i} style={{ marginBottom: '0.5rem' }}>
-              <strong>{msg.role === 'user' ? 'You' : 'Bot'}:</strong> {msg.content}
-            </div>
-          ))}
+        {messages.filter(m => m.role !== 'system').map((msg, i) => (
+          <div key={i} style={{ marginBottom: '0.5rem' }}>
+            <strong>{msg.role === 'user' ? 'You' : 'Bot'}:</strong> {msg.content}
+          </div>
+        ))}
       </div>
       <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
         <input
           value={input}
           onChange={e => setInput(e.target.value)}
-          placeholder="Type or use mic..."
+          placeholder="Type or speak..."
           style={{ flexGrow: 1, padding: '0.5rem' }}
         />
         <button onClick={handleSend} disabled={loading} style={{ padding: '0.5rem 1rem' }}>
@@ -185,4 +196,5 @@ When the user asks a question, answer it clearly and compassionately. Provide st
 };
 
 export default GPTChatBot;
+
 

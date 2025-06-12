@@ -158,7 +158,7 @@ Use step-by-step guidance, and tailor your response to the user’s location if 
     {listening ? '🎤 Listening...' : '🎙️ Speak'}
   </button>
   <button onClick={handleDownload} style={{ padding: '0.5rem 1rem' }}>
-    📄 Save
+    📄 Save Chat
   </button>
 </div>
 

@@ -10,18 +10,37 @@ const extractLocation = (text) => {
   return match ? match[2] : null;
 };
 
+// Smart follow-up prompt builder
+const generateSmartPrompt = (text) => {
+  const triggers = [
+    { keywords: ['mri', 'scan', 'imaging'], prompt: 'Ask if this procedure requires pre-authorization from UnitedHealthcare or if there are preferred imaging centers.' },
+    { keywords: ['blood test', 'lab', 'cbc', 'lipid'], prompt: 'Ask if you need to complete a fasting blood test before the procedure or visit a specific lab in-network.' },
+    { keywords: ['specialist', 'referral', 'consult'], prompt: 'Check if you need a referral from your primary doctor before seeing the specialist.' },
+    { keywords: ['medication', 'prescription', 'pharmacy'], prompt: 'Verify if this medication is covered by your UnitedHealthcare plan and whether prior authorization is needed.' }
+  ];
+
+  for (let { keywords, prompt } of triggers) {
+    if (keywords.some(k => text.toLowerCase().includes(k))) {
+      return {
+        role: 'system',
+        content: `The user has mentioned a medical service or procedure. You should guide them to confirm things like prior authorization, required labs, referrals, or coverage under their UnitedHealthcare plan. Example: "${prompt}"`
+      };
+    }
+  }
+
+  return null;
+};
+
 const GPTChatBot = () => {
   const [messages, setMessages] = useState([
     {
       role: 'system',
-      content: `You are CareCompanionAI, a warm and helpful AI Assistant for seniors in California. You specialize in Medicare, Medicaid, UnitedHealthcare, and General Health Care knowledge.
+      content: `You are CareCompanionAI, a warm and helpful AI Assistant for seniors in California. You specialize in Medicare, Medicaid, UnitedHealthcare, and General Health Care.
 
-When the user asks a question, answer it clearly, directly, and only ask follow-up questions if absolutely necessary. NEVER say “How can I help you today?” if a question has already been asked. Do not repeat yourself.
-
-Use step-by-step guidance, and tailor your response to the user’s location if provided. Keep your responses clear, compassionate, and useful. Suggest questions for the user to ask their provider if applicable.`
-
+When the user asks a question, answer it clearly and compassionately. Provide step-by-step suggestions and prompt the user with questions they should ask their provider (e.g., about lab tests, prior authorizations, referrals, costs, and timing).`
     }
   ]);
+
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [listening, setListening] = useState(false);
@@ -67,18 +86,18 @@ Use step-by-step guidance, and tailor your response to the user’s location if 
     if (!input.trim()) return;
 
     const location = extractLocation(input);
-    const locationMessage = location
-      ? {
-          role: 'system',
-          content: `User is located in ${location}. Tailor your guidance accordingly.`
-        }
-      : null;
+    const locationMessage = location ? {
+      role: 'system',
+      content: `The user is located in ${location}. Tailor your guidance accordingly.`
+    } : null;
+
+    const smartPrompt = generateSmartPrompt(input);
 
     const lastUserMessage = messages.slice().reverse().find(m => m.role === 'user');
     const preventRepetitionMessage = lastUserMessage && lastUserMessage.content === input.trim()
       ? {
           role: 'system',
-          content: 'The user has already asked this question. Avoid repeating generic introductions or restating the same information.'
+          content: 'The user is repeating their last question. Avoid generic intros or repetition.'
         }
       : null;
 
@@ -86,6 +105,7 @@ Use step-by-step guidance, and tailor your response to the user’s location if 
       ...messages,
       ...(locationMessage ? [locationMessage] : []),
       ...(preventRepetitionMessage ? [preventRepetitionMessage] : []),
+      ...(smartPrompt ? [smartPrompt] : []),
       { role: 'user', content: input }
     ];
 
@@ -98,7 +118,6 @@ Use step-by-step guidance, and tailor your response to the user’s location if 
         'https://carecompanionai-website.onrender.com/api/chat-with-tools',
         { messages: newMessages }
       );
-
       const assistantReply = response.data.choices[0].message;
       setMessages([...newMessages, assistantReply]);
     } catch (error) {
@@ -145,25 +164,25 @@ Use step-by-step guidance, and tailor your response to the user’s location if 
           ))}
       </div>
       <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-  <input
-    value={input}
-    onChange={e => setInput(e.target.value)}
-    placeholder="Type or use mic..."
-    style={{ flexGrow: 1, padding: '0.5rem' }}
-  />
-  <button onClick={handleSend} disabled={loading} style={{ padding: '0.5rem 1rem' }}>
-    {loading ? 'Sending...' : 'Send'}
-  </button>
-  <button onClick={toggleMic} style={{ padding: '0.5rem 1rem', backgroundColor: listening ? '#e57373' : '#90caf9' }}>
-    {listening ? '🎤 Listening...' : '🎙️ Speak'}
-  </button>
-  <button onClick={handleDownload} style={{ padding: '0.5rem 1rem' }}>
-    📄 Save Chat
-  </button>
-</div>
-
+        <input
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          placeholder="Type or use mic..."
+          style={{ flexGrow: 1, padding: '0.5rem' }}
+        />
+        <button onClick={handleSend} disabled={loading} style={{ padding: '0.5rem 1rem' }}>
+          {loading ? 'Sending...' : 'Send'}
+        </button>
+        <button onClick={toggleMic} style={{ padding: '0.5rem 1rem', backgroundColor: listening ? '#e57373' : '#90caf9' }}>
+          {listening ? '🎤 Listening...' : '🎙️ Speak'}
+        </button>
+        <button onClick={handleDownload} style={{ padding: '0.5rem 1rem' }}>
+          📄 Save
+        </button>
+      </div>
     </div>
   );
 };
 
 export default GPTChatBot;
+

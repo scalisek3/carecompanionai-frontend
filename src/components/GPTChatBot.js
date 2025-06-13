@@ -43,6 +43,31 @@ const GPTChatBot = () => {
   const [listening, setListening] = useState(false);
   const recognitionRef = useRef(null);
   const chatRef = useRef(null);
+  const functions = [
+  {
+    name: "find_medicare_provider",
+    description: "Find Medicare providers by city and state",
+    parameters: {
+      type: "object",
+      properties: {
+        city: { type: "string", description: "The city to search in" },
+        state: { type: "string", description: "The 2-letter state code" }
+      },
+      required: ["city", "state"]
+    }
+  }
+];
+
+  const lookupProviders = async (city, state) => {
+  try {
+    const res = await axios.get(`https://carecompanionai-website.onrender.com/api/providers?city=${city}&state=${state}`);
+    return res.data.results;
+  } catch (err) {
+    console.error('Provider lookup error:', err);
+    return [];
+  }
+};
+  
 
   useEffect(() => {
     if (SpeechRecognition) {

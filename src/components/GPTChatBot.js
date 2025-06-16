@@ -80,7 +80,10 @@ const GPTChatBot = () => {
     setLoading(true);
 
     try {
-      const res = await axios.post('/api/chat-with-tools', { messages: newMessages });
+      const res = await axios.post('https://carecompanionai-website.onrender.com/api/chat-with-tools', {
+  messages: newMessages
+});
+
       const reply = res.data.choices[0].message;
       setMessages([...newMessages, reply]);
     } catch (err) {

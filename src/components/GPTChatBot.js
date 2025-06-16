@@ -4,51 +4,24 @@ import jsPDF from 'jspdf';
 
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
-// Detect location
 const extractLocation = (text) => {
-  const locationRegex = /\b(in|near|around|from|to) ([A-Z][a-z]+(?:,?\s?[A-Z]{2})?)\b/;
-  const match = text.match(locationRegex);
-  return match ? match[2] : null;
+  const match = text.match(/\b(?:in|near|around|from|to)\s([A-Z][a-z]+(?:,\s?[A-Z]{2})?)/i);
+  return match ? match[1] : null;
 };
 
-// Smart prompt logic
-const generateSmartPrompt = (text) => {
-  const triggers = [
-    {
-      keywords: ['palliative', 'hospice', 'end-of-life'],
-      prompt: 'Ask if they would like help finding palliative care providers in their city and confirm if those providers accept Medicare or UnitedHealthcare.'
-    },
-    {
-      keywords: ['mri', 'imaging', 'scan', 'x-ray', 'ultrasound'],
-      prompt: 'Ask if this procedure needs pre-authorization or must be performed at an in-network imaging center.'
-    },
-    {
-      keywords: ['blood test', 'lab', 'cbc', 'lipid'],
-      prompt: 'Ask if a fasting blood test is required or if they should use a preferred in-network lab.'
-    },
-    {
-      keywords: ['specialist', 'referral', 'consult'],
-      prompt: 'Ask if they need a referral from their primary doctor for the specialist visit.'
-    },
-    {
-      keywords: ['medication', 'prescription', 'pharmacy'],
-      prompt: 'Ask if their medication is covered by UnitedHealthcare or Medicare and whether prior authorization is needed.'
-    },
-    {
-      keywords: ['urgent care', 'emergency', 'er'],
-      prompt: 'Remind them to verify coverage and whether follow-up paperwork is required.'
-    }
+const smartPrompt = (text) => {
+  const prompts = [
+    { keywords: ['bipap', 'ventilator'], message: 'Check if the SNF provides respiratory or BiPAP support.' },
+    { keywords: ['palliative', 'hospice'], message: 'See if the provider offers palliative or end-of-life care.' },
+    { keywords: ['mri', 'scan'], message: 'Ask about pre-authorization and in-network imaging centers.' },
+    { keywords: ['blood', 'lab'], message: 'Does this test require fasting? Check in-network labs.' },
+    { keywords: ['urgent', 'er'], message: 'Is this covered as an emergency or urgent care visit?' }
   ];
-
-  for (let { keywords, prompt } of triggers) {
-    if (keywords.some(k => text.toLowerCase().includes(k))) {
-      return {
-        role: 'system',
-        content: `Smart follow-up: ${prompt}`
-      };
-    }
-  }
-  return null;
+  const found = prompts.find(({ keywords }) => keywords.some(k => text.toLowerCase().includes(k)));
+  return found ? {
+    role: 'system',
+    content: `User may need follow-up guidance. Example: ${found.message}`
+  } : null;
 };
 
 const GPTChatBot = () => {
@@ -56,13 +29,7 @@ const GPTChatBot = () => {
     const saved = localStorage.getItem('carechat');
     return saved ? JSON.parse(saved) : [{
       role: 'system',
-      content: `You are CareCompanionAI, a warm and helpful AI assistant for seniors. You specialize in Medicare, Medicaid, UnitedHealthcare, and healthcare access. 
-
-Always:
-- Answer clearly with step-by-step advice.
-- Include phone numbers or links when relevant.
-- Suggest questions the user should ask their provider (e.g. prior authorization, network coverage, required labs).
-- Avoid repeating unless asked. Assume the user expects *you* to do the work.`
+      content: `You are CareCompanionAI, an expert assistant for Medicare, Medicaid, UnitedHealthcare, and senior care. Provide direct, local results. Always do the research for the user.`
     }];
   });
 
@@ -76,84 +43,49 @@ Always:
     if (SpeechRecognition) {
       recognitionRef.current = new SpeechRecognition();
       recognitionRef.current.lang = 'en-US';
-      recognitionRef.current.continuous = false;
-      recognitionRef.current.interimResults = false;
-
-      recognitionRef.current.onresult = (event) => {
-        const transcript = event.results[0][0].transcript.trim();
-        if (transcript) {
-          setInput(transcript);
-          setTimeout(() => handleSend(), 300);
-        }
-        setListening(false);
-      };
-
-      recognitionRef.current.onerror = (e) => {
-        console.error('Speech recognition error:', e);
-        setListening(false);
+      recognitionRef.current.onresult = (e) => {
+        const transcript = e.results[0][0].transcript;
+        setInput(transcript);
+        setTimeout(handleSend, 300);
       };
       recognitionRef.current.onend = () => setListening(false);
+      recognitionRef.current.onerror = () => setListening(false);
     }
   }, []);
 
   useEffect(() => {
     localStorage.setItem('carechat', JSON.stringify(messages));
-    if (chatRef.current) {
-      chatRef.current.scrollTop = chatRef.current.scrollHeight;
-    }
+    chatRef.current?.scrollTo(0, chatRef.current.scrollHeight);
   }, [messages]);
 
   const toggleMic = () => {
-    if (!SpeechRecognition) {
-      alert('Your browser does not support voice input.');
-      return;
-    }
-
-    if (listening) {
-      recognitionRef.current.stop();
-      setListening(false);
-    } else {
-      recognitionRef.current.start();
-      setListening(true);
-    }
+    if (!SpeechRecognition) return alert('Voice input not supported.');
+    listening ? recognitionRef.current.stop() : recognitionRef.current.start();
+    setListening(!listening);
   };
 
   const handleSend = async () => {
     if (!input.trim()) return;
 
     const location = extractLocation(input);
-    const locationMessage = location
-      ? { role: 'system', content: `User is located in ${location}. Tailor recommendations.` }
-      : null;
-
-    const smartPrompt = generateSmartPrompt(input);
-    const lastUser = messages.slice().reverse().find(m => m.role === 'user');
-    const repeatBlock = lastUser?.content === input.trim()
-      ? { role: 'system', content: 'Avoid repeating the last message. Continue the conversation.' }
-      : null;
-
     const newMessages = [
       ...messages,
-      ...(locationMessage ? [locationMessage] : []),
-      ...(repeatBlock ? [repeatBlock] : []),
-      ...(smartPrompt ? [smartPrompt] : []),
+      location ? { role: 'system', content: `User is located in ${location}` } : null,
+      smartPrompt(input),
       { role: 'user', content: input.trim() }
-    ];
+    ].filter(Boolean);
 
     setMessages(newMessages);
     setInput('');
     setLoading(true);
 
     try {
-      const res = await axios.post('https://carecompanionai-website.onrender.com/api/chat-with-tools', {
-        messages: newMessages
-      });
-
+      const res = await axios.post('/api/chat-with-tools', { messages: newMessages });
       const reply = res.data.choices[0].message;
       setMessages([...newMessages, reply]);
     } catch (err) {
-      console.error('❌ Assistant error:', err);
-      alert('The assistant encountered an issue. Please try again shortly.');
+      console.error(err);
+      alert('Error from assistant.');
     } finally {
       setLoading(false);
     }
@@ -162,62 +94,36 @@ Always:
   const handleDownload = () => {
     const doc = new jsPDF();
     let y = 10;
-    const date = new Date().toLocaleString();
     doc.setFontSize(10);
-    doc.text(`CareCompanionAI Conversation – ${date}`, 10, y);
+    doc.text(`CareCompanionAI Conversation – ${new Date().toLocaleString()}`, 10, y);
     y += 10;
-    messages.filter(m => m.role !== 'system').forEach(msg => {
-      const label = msg.role === 'user' ? 'You: ' : 'Bot: ';
-      const lines = doc.splitTextToSize(`${label}${msg.content}`, 180);
-      lines.forEach(line => {
-        if (y > 280) {
-          doc.addPage();
-          y = 10;
-        }
-        doc.text(line, 10, y);
-        y += 7;
-      });
-      y += 3;
+    messages.filter(m => m.role !== 'system').forEach(m => {
+      doc.text(`${m.role === 'user' ? 'You' : 'Bot'}: ${m.content}`, 10, y);
+      y += 10;
+      if (y > 270) { doc.addPage(); y = 10; }
     });
-    doc.save('carecompanionai-conversation.pdf');
+    doc.save('carecompanion-conversation.pdf');
   };
 
   return (
     <div style={{ maxWidth: '600px', margin: '1rem auto', padding: '1rem', backgroundColor: '#f9f9f9', borderRadius: '8px' }}>
-      <h2 style={{ textAlign: 'center', marginBottom: '1rem' }}>💬 Chat with CareCompanionAI</h2>
-
-      <div
-        ref={chatRef}
-        style={{ maxHeight: '300px', overflowY: 'auto', backgroundColor: '#fff', padding: '1rem', borderRadius: '4px', marginBottom: '1rem' }}
-      >
+      <h2 style={{ textAlign: 'center' }}>💬 CareCompanion AI</h2>
+      <div ref={chatRef} style={{ maxHeight: '300px', overflowY: 'auto', marginBottom: '1rem', background: '#fff', padding: '1rem', borderRadius: '4px' }}>
         {messages.filter(m => m.role !== 'system').map((msg, i) => (
-          <div key={i} style={{ marginBottom: '0.5rem' }}>
-            <strong>{msg.role === 'user' ? 'You' : 'Bot'}:</strong> {msg.content}
-          </div>
+          <div key={i}><strong>{msg.role === 'user' ? 'You' : 'Bot'}:</strong> {msg.content}</div>
         ))}
       </div>
-
-      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-        <input
-          value={input}
-          onChange={e => setInput(e.target.value)}
-          placeholder="Type or speak your question..."
-          style={{ flexGrow: 1, padding: '0.5rem' }}
-        />
-        <button onClick={handleSend} disabled={loading} style={{ padding: '0.5rem 1rem' }}>
-          {loading ? 'Sending...' : 'Send'}
-        </button>
-        <button onClick={toggleMic} style={{ padding: '0.5rem 1rem', backgroundColor: listening ? '#e57373' : '#90caf9' }}>
-          {listening ? '🎤 Listening...' : '🎙️ Speak'}
-        </button>
-        <button onClick={handleDownload} style={{ padding: '0.5rem 1rem' }}>
-          📄 Save
-        </button>
+      <div style={{ display: 'flex', gap: '0.5rem' }}>
+        <input value={input} onChange={e => setInput(e.target.value)} style={{ flex: 1 }} placeholder="Type or use mic..." />
+        <button onClick={handleSend} disabled={loading}>{loading ? 'Sending...' : 'Send'}</button>
+        <button onClick={toggleMic} style={{ background: listening ? '#e57373' : '#90caf9' }}>{listening ? '🎤 Stop' : '🎙️ Speak'}</button>
+        <button onClick={handleDownload}>📄 Save</button>
       </div>
     </div>
   );
 };
 
 export default GPTChatBot;
+
 
 

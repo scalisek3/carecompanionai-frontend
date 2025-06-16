@@ -4,25 +4,47 @@ import jsPDF from 'jspdf';
 
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
+// Detect location
 const extractLocation = (text) => {
   const locationRegex = /\b(in|near|around|from|to) ([A-Z][a-z]+(?:,?\s?[A-Z]{2})?)\b/;
   const match = text.match(locationRegex);
   return match ? match[2] : null;
 };
 
+// Smart prompt logic
 const generateSmartPrompt = (text) => {
   const triggers = [
-    { keywords: ['mri', 'scan', 'imaging', 'x-ray', 'ultrasound'], prompt: 'Ask if this procedure requires pre-authorization from UnitedHealthcare or if there are preferred imaging centers.' },
-    { keywords: ['blood test', 'lab', 'cbc', 'lipid'], prompt: 'Ask if you need to complete a fasting blood test before the procedure or visit a specific lab in-network.' },
-    { keywords: ['specialist', 'referral', 'consult'], prompt: 'Check if you need a referral from your primary doctor before seeing the specialist.' },
-    { keywords: ['medication', 'prescription', 'pharmacy'], prompt: 'Verify if this medication is covered by your UnitedHealthcare plan and whether prior authorization is needed.' },
-    { keywords: ['urgent care', 'emergency', 'er'], prompt: 'Ask if your visit to urgent care or ER is covered, and whether you need follow-up paperwork.' }
+    {
+      keywords: ['palliative', 'hospice', 'end-of-life'],
+      prompt: 'Ask if they would like help finding palliative care providers in their city and confirm if those providers accept Medicare or UnitedHealthcare.'
+    },
+    {
+      keywords: ['mri', 'imaging', 'scan', 'x-ray', 'ultrasound'],
+      prompt: 'Ask if this procedure needs pre-authorization or must be performed at an in-network imaging center.'
+    },
+    {
+      keywords: ['blood test', 'lab', 'cbc', 'lipid'],
+      prompt: 'Ask if a fasting blood test is required or if they should use a preferred in-network lab.'
+    },
+    {
+      keywords: ['specialist', 'referral', 'consult'],
+      prompt: 'Ask if they need a referral from their primary doctor for the specialist visit.'
+    },
+    {
+      keywords: ['medication', 'prescription', 'pharmacy'],
+      prompt: 'Ask if their medication is covered by UnitedHealthcare or Medicare and whether prior authorization is needed.'
+    },
+    {
+      keywords: ['urgent care', 'emergency', 'er'],
+      prompt: 'Remind them to verify coverage and whether follow-up paperwork is required.'
+    }
   ];
+
   for (let { keywords, prompt } of triggers) {
     if (keywords.some(k => text.toLowerCase().includes(k))) {
       return {
         role: 'system',
-        content: `The user mentioned a medical topic. Help them confirm important next steps like labs, referrals, or insurance clearance. Example: "${prompt}"`
+        content: `Smart follow-up: ${prompt}`
       };
     }
   }
@@ -34,7 +56,13 @@ const GPTChatBot = () => {
     const saved = localStorage.getItem('carechat');
     return saved ? JSON.parse(saved) : [{
       role: 'system',
-      content: `You are CareCompanionAI, a warm and helpful AI assistant for seniors. You specialize in Medicare, Medicaid, UnitedHealthcare, and general healthcare guidance. Always provide clear, compassionate, step-by-step suggestions.`
+      content: `You are CareCompanionAI, a warm and helpful AI assistant for seniors. You specialize in Medicare, Medicaid, UnitedHealthcare, and healthcare access. 
+
+Always:
+- Answer clearly with step-by-step advice.
+- Include phone numbers or links when relevant.
+- Suggest questions the user should ask their provider (e.g. prior authorization, network coverage, required labs).
+- Avoid repeating unless asked. Assume the user expects *you* to do the work.`
     }];
   });
 
@@ -43,53 +71,28 @@ const GPTChatBot = () => {
   const [listening, setListening] = useState(false);
   const recognitionRef = useRef(null);
   const chatRef = useRef(null);
-  const functions = [
-  {
-    name: "find_medicare_provider",
-    description: "Find Medicare providers by city and state",
-    parameters: {
-      type: "object",
-      properties: {
-        city: { type: "string", description: "The city to search in" },
-        state: { type: "string", description: "The 2-letter state code" }
-      },
-      required: ["city", "state"]
-    }
-  }
-];
-
-  const lookupProviders = async (city, state) => {
-  try {
-    const res = await axios.get(`https://carecompanionai-website.onrender.com/api/providers?city=${city}&state=${state}`);
-    return res.data.results;
-  } catch (err) {
-    console.error('Provider lookup error:', err);
-    return [];
-  }
-};
-  
 
   useEffect(() => {
     if (SpeechRecognition) {
       recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.lang = 'en-US';
       recognitionRef.current.continuous = false;
       recognitionRef.current.interimResults = false;
-      recognitionRef.current.lang = 'en-US';
 
       recognitionRef.current.onresult = (event) => {
         const transcript = event.results[0][0].transcript.trim();
         if (transcript) {
           setInput(transcript);
-          setTimeout(() => handleSend(), 300); // Auto-send
+          setTimeout(() => handleSend(), 300);
         }
         setListening(false);
       };
 
-      recognitionRef.current.onend = () => setListening(false);
       recognitionRef.current.onerror = (e) => {
         console.error('Speech recognition error:', e);
         setListening(false);
       };
+      recognitionRef.current.onend = () => setListening(false);
     }
   }, []);
 
@@ -102,9 +105,10 @@ const GPTChatBot = () => {
 
   const toggleMic = () => {
     if (!SpeechRecognition) {
-      alert('Voice input is not supported in this browser.');
+      alert('Your browser does not support voice input.');
       return;
     }
+
     if (listening) {
       recognitionRef.current.stop();
       setListening(false);
@@ -118,25 +122,22 @@ const GPTChatBot = () => {
     if (!input.trim()) return;
 
     const location = extractLocation(input);
-    const locationMessage = location ? {
-      role: 'system',
-      content: `The user is located in ${location}. Tailor your guidance accordingly.`
-    } : null;
+    const locationMessage = location
+      ? { role: 'system', content: `User is located in ${location}. Tailor recommendations.` }
+      : null;
 
     const smartPrompt = generateSmartPrompt(input);
-    const lastUserMessage = messages.slice().reverse().find(m => m.role === 'user');
-    const preventRepetitionMessage = lastUserMessage && lastUserMessage.content === input.trim()
-      ? {
-        role: 'system',
-        content: 'Avoid repeating previous content. Focus on progressing the conversation.'
-      } : null;
+    const lastUser = messages.slice().reverse().find(m => m.role === 'user');
+    const repeatBlock = lastUser?.content === input.trim()
+      ? { role: 'system', content: 'Avoid repeating the last message. Continue the conversation.' }
+      : null;
 
     const newMessages = [
       ...messages,
       ...(locationMessage ? [locationMessage] : []),
-      ...(preventRepetitionMessage ? [preventRepetitionMessage] : []),
+      ...(repeatBlock ? [repeatBlock] : []),
       ...(smartPrompt ? [smartPrompt] : []),
-      { role: 'user', content: input }
+      { role: 'user', content: input.trim() }
     ];
 
     setMessages(newMessages);
@@ -144,15 +145,15 @@ const GPTChatBot = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post(
-        'https://carecompanionai-website.onrender.com/api/chat-with-tools',
-        { messages: newMessages }
-      );
-      const assistantReply = response.data.choices[0].message;
-      setMessages([...newMessages, assistantReply]);
-    } catch (error) {
-      console.error('Error:', error);
-      alert('Something went wrong. Please try again later.');
+      const res = await axios.post('https://carecompanionai-website.onrender.com/api/chat-with-tools', {
+        messages: newMessages
+      });
+
+      const reply = res.data.choices[0].message;
+      setMessages([...newMessages, reply]);
+    } catch (err) {
+      console.error('❌ Assistant error:', err);
+      alert('The assistant encountered an issue. Please try again shortly.');
     } finally {
       setLoading(false);
     }
@@ -165,7 +166,7 @@ const GPTChatBot = () => {
     doc.setFontSize(10);
     doc.text(`CareCompanionAI Conversation – ${date}`, 10, y);
     y += 10;
-    messages.filter(m => m.role !== 'system').forEach((msg) => {
+    messages.filter(m => m.role !== 'system').forEach(msg => {
       const label = msg.role === 'user' ? 'You: ' : 'Bot: ';
       const lines = doc.splitTextToSize(`${label}${msg.content}`, 180);
       lines.forEach(line => {
@@ -183,16 +184,26 @@ const GPTChatBot = () => {
 
   return (
     <div style={{ maxWidth: '600px', margin: '1rem auto', padding: '1rem', backgroundColor: '#f9f9f9', borderRadius: '8px' }}>
-      <h2 style={{ textAlign: 'center', marginBottom: '1rem' }}>💬 Chat with CareCompanion AI</h2>
-      <div ref={chatRef} style={{ maxHeight: '300px', overflowY: 'auto', marginBottom: '1rem', backgroundColor: '#fff', padding: '1rem', borderRadius: '4px' }}>
+      <h2 style={{ textAlign: 'center', marginBottom: '1rem' }}>💬 Chat with CareCompanionAI</h2>
+
+      <div
+        ref={chatRef}
+        style={{ maxHeight: '300px', overflowY: 'auto', backgroundColor: '#fff', padding: '1rem', borderRadius: '4px', marginBottom: '1rem' }}
+      >
         {messages.filter(m => m.role !== 'system').map((msg, i) => (
           <div key={i} style={{ marginBottom: '0.5rem' }}>
             <strong>{msg.role === 'user' ? 'You' : 'Bot'}:</strong> {msg.content}
           </div>
         ))}
       </div>
+
       <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-        <input value={input} onChange={e => setInput(e.target.value)} placeholder="Type or use mic..." style={{ flexGrow: 1, padding: '0.5rem' }} />
+        <input
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          placeholder="Type or speak your question..."
+          style={{ flexGrow: 1, padding: '0.5rem' }}
+        />
         <button onClick={handleSend} disabled={loading} style={{ padding: '0.5rem 1rem' }}>
           {loading ? 'Sending...' : 'Send'}
         </button>
@@ -200,7 +211,7 @@ const GPTChatBot = () => {
           {listening ? '🎤 Listening...' : '🎙️ Speak'}
         </button>
         <button onClick={handleDownload} style={{ padding: '0.5rem 1rem' }}>
-          📄 Save Chat
+          📄 Save
         </button>
       </div>
     </div>
@@ -208,4 +219,5 @@ const GPTChatBot = () => {
 };
 
 export default GPTChatBot;
+
 

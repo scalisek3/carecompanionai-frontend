@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import jsPDF from 'jspdf';
 
+const API_BASE_URL = 'https://carecompanionai-website.onrender.com';
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
 const extractLocation = (text) => {
@@ -80,15 +81,14 @@ const GPTChatBot = () => {
     setLoading(true);
 
     try {
-      const res = await axios.post('https://carecompanionai-website.onrender.com/api/chat-with-tools', {
-  messages: newMessages
-});
-
+      const res = await axios.post(`${API_BASE_URL}/api/chat-with-tools`, {
+        messages: newMessages
+      });
       const reply = res.data.choices[0].message;
       setMessages([...newMessages, reply]);
     } catch (err) {
-      console.error(err);
-      alert('Error from assistant.');
+      console.error('Chatbot error:', err);
+      alert('Sorry, something went wrong. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -101,9 +101,14 @@ const GPTChatBot = () => {
     doc.text(`CareCompanionAI Conversation – ${new Date().toLocaleString()}`, 10, y);
     y += 10;
     messages.filter(m => m.role !== 'system').forEach(m => {
-      doc.text(`${m.role === 'user' ? 'You' : 'Bot'}: ${m.content}`, 10, y);
-      y += 10;
-      if (y > 270) { doc.addPage(); y = 10; }
+      const label = m.role === 'user' ? 'You: ' : 'Bot: ';
+      const lines = doc.splitTextToSize(`${label}${m.content}`, 180);
+      lines.forEach(line => {
+        if (y > 270) { doc.addPage(); y = 10; }
+        doc.text(line, 10, y);
+        y += 7;
+      });
+      y += 3;
     });
     doc.save('carecompanion-conversation.pdf');
   };
@@ -117,16 +122,17 @@ const GPTChatBot = () => {
         ))}
       </div>
       <div style={{ display: 'flex', gap: '0.5rem' }}>
-        <input value={input} onChange={e => setInput(e.target.value)} style={{ flex: 1 }} placeholder="Type or use mic..." />
-        <button onClick={handleSend} disabled={loading}>{loading ? 'Sending...' : 'Send'}</button>
-        <button onClick={toggleMic} style={{ background: listening ? '#e57373' : '#90caf9' }}>{listening ? '🎤 Stop' : '🎙️ Speak'}</button>
-        <button onClick={handleDownload}>📄 Save</button>
+        <input value={input} onChange={e => setInput(e.target.value)} style={{ flex: 1, padding: '0.5rem' }} placeholder="Type or use mic..." />
+        <button onClick={handleSend} disabled={loading} style={{ padding: '0.5rem 1rem' }}>
+          {loading ? 'Sending...' : 'Send'}
+        </button>
+        <button onClick={toggleMic} style={{ padding: '0.5rem 1rem', background: listening ? '#e57373' : '#90caf9' }}>
+          {listening ? '🎤 Stop' : '🎙️ Speak'}
+        </button>
+        <button onClick={handleDownload} style={{ padding: '0.5rem 1rem' }}>📄 Save</button>
       </div>
     </div>
   );
 };
 
 export default GPTChatBot;
-
-
-

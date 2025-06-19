@@ -56,38 +56,47 @@ const GPTChatBot = () => {
 
   const handleSend = async () => {
     if (!input.trim()) return;
+
     const location = extractLocation(input);
     const keyword = extractKeyword(input);
-
     const newMessages = [...messages];
 
+    // Add user message
+    newMessages.push({ role: 'user', content: input.trim() });
+
+    // If we can detect location & keyword, do a live lookup first
     if (location && keyword) {
       try {
         const res = await axios.get(`https://carecompanionai-website.onrender.com/api/medicare-providers?city=${location.city}&state=${location.state}&keyword=${keyword}`);
         const providers = res.data.providers || [];
+
         if (providers.length > 0) {
+          const resultsText = providers.map(p =>
+            `• **${p.name || 'Unnamed Provider'}** (${p.specialty || 'Specialty unknown'})\n  ${p.address || 'No address listed'}\n  📞 ${p.phone || 'N/A'}`
+          ).join('\n\n');
+
           newMessages.push({
             role: 'assistant',
-            content: `Here are some ${keyword} providers in ${location.city}, ${location.state}:\n\n` +
-              providers.map(p => `• **${p.name}** (${p.specialty})\n  ${p.address}\n  📞 ${p.phone || 'N/A'}`).join('\n\n')
+            content: `Here are some ${keyword} providers in ${location.city}, ${location.state}:\n\n${resultsText}`
           });
         } else {
-          newMessages.push({ role: 'assistant', content: `Sorry, I couldn't find any ${keyword} providers in ${location.city}, ${location.state}.` });
+          newMessages.push({
+            role: 'assistant',
+            content: `Sorry, I couldn't find any ${keyword} providers in ${location.city}, ${location.state}.`
+          });
         }
       } catch (e) {
-        newMessages.push({ role: 'assistant', content: `I encountered an error while looking up providers.` });
+        console.error(e);
+        newMessages.push({ role: 'assistant', content: `⚠️ I encountered an error while looking up providers.` });
       }
     }
 
-    newMessages.push({ role: 'user', content: input.trim() });
     setInput('');
     setMessages(newMessages);
     setLoading(true);
 
     try {
-      const res = await axios.post('https://carecompanionai-website.onrender.com/api/chat-with-tools', {
-        messages: newMessages
-      });
+      const res = await axios.post('https://carecompanionai-website.onrender.com/api/chat-with-tools', { messages: newMessages });
       const reply = res.data.choices[0].message;
       setMessages([...newMessages, reply]);
     } catch (err) {
@@ -105,11 +114,25 @@ const GPTChatBot = () => {
     doc.text(`CareCompanionAI Conversation – ${new Date().toLocaleString()}`, 10, y);
     y += 10;
     messages.filter(m => m.role !== 'system').forEach(m => {
-      doc.text(`${m.role === 'user' ? 'You' : 'Bot'}: ${m.content}`, 10, y);
-      y += 10;
-      if (y > 270) { doc.addPage(); y = 10; }
+      const lines = doc.splitTextToSize(`${m.role === 'user' ? 'You' : 'Bot'}: ${m.content}`, 180);
+      lines.forEach(line => {
+        doc.text(line, 10, y);
+        y += 7;
+        if (y > 270) { doc.addPage(); y = 10; }
+      });
+      y += 3;
     });
     doc.save('carecompanion-conversation.pdf');
+  };
+
+  const handleNewChat = () => {
+    const initialMessages = [{
+      role: 'system',
+      content: `You are CareCompanionAI, an expert assistant for Medicare, Medicaid, UnitedHealthcare, and senior care. Provide direct, local results. Always do the research for the user.`
+    }];
+    localStorage.setItem('carechat', JSON.stringify(initialMessages));
+    setMessages(initialMessages);
+    setInput('');
   };
 
   return (
@@ -117,7 +140,9 @@ const GPTChatBot = () => {
       <h2 style={{ textAlign: 'center' }}>💬 CareCompanion AI</h2>
       <div ref={chatRef} style={{ maxHeight: '300px', overflowY: 'auto', marginBottom: '1rem', background: '#fff', padding: '1rem', borderRadius: '4px' }}>
         {messages.filter(m => m.role !== 'system').map((msg, i) => (
-          <div key={i}><strong>{msg.role === 'user' ? 'You' : 'Bot'}:</strong> {msg.content}</div>
+          <div key={i} style={{ marginBottom: '0.5rem' }}>
+            <strong>{msg.role === 'user' ? 'You' : 'Bot'}:</strong> {msg.content}
+          </div>
         ))}
       </div>
       <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -125,10 +150,12 @@ const GPTChatBot = () => {
         <button onClick={handleSend} disabled={loading}>{loading ? 'Sending...' : 'Send'}</button>
         <button onClick={toggleMic} style={{ background: listening ? '#e57373' : '#90caf9' }}>{listening ? '🎤 Stop' : '🎙️ Speak'}</button>
         <button onClick={handleDownload}>📄 Save</button>
+        <button onClick={handleNewChat} style={{ backgroundColor: '#ffc107' }}>🆕 New Chat</button>
       </div>
     </div>
   );
 };
 
 export default GPTChatBot;
+
 

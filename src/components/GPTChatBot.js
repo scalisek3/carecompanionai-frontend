@@ -149,7 +149,7 @@ const GPTChatBot = () => {
         <input value={input} onChange={e => setInput(e.target.value)} style={{ flex: 1 }} placeholder="Type or use mic..." />
         <button onClick={handleSend} disabled={loading}>{loading ? 'Sending...' : 'Send'}</button>
         <button onClick={toggleMic} style={{ background: listening ? '#e57373' : '#90caf9' }}>{listening ? '🎤 Stop' : '🎙️ Speak'}</button>
-        <button onClick={handleDownload}>📄 Save</button>
+        <button onClick={handleDownload}>📄 Save PDF</button>
         <button onClick={handleNewChat} style={{ backgroundColor: '#ffc107' }}>🆕 New Chat</button>
       </div>
     </div>

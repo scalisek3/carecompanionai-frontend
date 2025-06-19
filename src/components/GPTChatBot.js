@@ -2,27 +2,16 @@ import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import jsPDF from 'jspdf';
 
-const API_BASE_URL = 'https://carecompanionai-website.onrender.com';
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
 const extractLocation = (text) => {
-  const match = text.match(/\b(?:in|near|around|from|to)\s([A-Z][a-z]+(?:,\s?[A-Z]{2})?)/i);
-  return match ? match[1] : null;
+  const match = text.match(/\b(?:in|near|around|from|to)\s([A-Z][a-z]+)(?:,\s?([A-Z]{2}))?/i);
+  return match ? { city: match[1], state: match[2] || 'CA' } : null;
 };
 
-const smartPrompt = (text) => {
-  const prompts = [
-    { keywords: ['bipap', 'ventilator'], message: 'Check if the SNF provides respiratory or BiPAP support.' },
-    { keywords: ['palliative', 'hospice'], message: 'See if the provider offers palliative or end-of-life care.' },
-    { keywords: ['mri', 'scan'], message: 'Ask about pre-authorization and in-network imaging centers.' },
-    { keywords: ['blood', 'lab'], message: 'Does this test require fasting? Check in-network labs.' },
-    { keywords: ['urgent', 'er'], message: 'Is this covered as an emergency or urgent care visit?' }
-  ];
-  const found = prompts.find(({ keywords }) => keywords.some(k => text.toLowerCase().includes(k)));
-  return found ? {
-    role: 'system',
-    content: `User may need follow-up guidance. Example: ${found.message}`
-  } : null;
+const extractKeyword = (text) => {
+  const keywords = ['hospice', 'palliative', 'snf', 'skilled nursing', 'geriatrics'];
+  return keywords.find(k => text.toLowerCase().includes(k)) || null;
 };
 
 const GPTChatBot = () => {
@@ -30,7 +19,7 @@ const GPTChatBot = () => {
     const saved = localStorage.getItem('carechat');
     return saved ? JSON.parse(saved) : [{
       role: 'system',
-      content: `You are CareCompanionAI, an expert assistant for Medicare, Medicaid, UnitedHealthcare, and senior care. Provide direct, local results. Always do the research for the user.`
+      content: `You are CareCompanionAI, a highly capable healthcare assistant for seniors. You specialize in Medicare, Medicaid, UnitedHealthcare, and elder care services. When the user asks for provider options, always provide actual names, specialties, and phone numbers — never redirect them to a website or call center unless absolutely necessary.`
     }];
   });
 
@@ -67,28 +56,43 @@ const GPTChatBot = () => {
 
   const handleSend = async () => {
     if (!input.trim()) return;
-
     const location = extractLocation(input);
-    const newMessages = [
-      ...messages,
-      location ? { role: 'system', content: `User is located in ${location}` } : null,
-      smartPrompt(input),
-      { role: 'user', content: input.trim() }
-    ].filter(Boolean);
+    const keyword = extractKeyword(input);
 
-    setMessages(newMessages);
+    const newMessages = [...messages];
+
+    if (location && keyword) {
+      try {
+        const res = await axios.get(`https://carecompanionai-website.onrender.com/api/medicare-providers?city=${location.city}&state=${location.state}&keyword=${keyword}`);
+        const providers = res.data.providers || [];
+        if (providers.length > 0) {
+          newMessages.push({
+            role: 'assistant',
+            content: `Here are some ${keyword} providers in ${location.city}, ${location.state}:\n\n` +
+              providers.map(p => `• **${p.name}** (${p.specialty})\n  ${p.address}\n  📞 ${p.phone || 'N/A'}`).join('\n\n')
+          });
+        } else {
+          newMessages.push({ role: 'assistant', content: `Sorry, I couldn't find any ${keyword} providers in ${location.city}, ${location.state}.` });
+        }
+      } catch (e) {
+        newMessages.push({ role: 'assistant', content: `I encountered an error while looking up providers.` });
+      }
+    }
+
+    newMessages.push({ role: 'user', content: input.trim() });
     setInput('');
+    setMessages(newMessages);
     setLoading(true);
 
     try {
-      const res = await axios.post(`${API_BASE_URL}/api/chat-with-tools`, {
+      const res = await axios.post('https://carecompanionai-website.onrender.com/api/chat-with-tools', {
         messages: newMessages
       });
       const reply = res.data.choices[0].message;
       setMessages([...newMessages, reply]);
     } catch (err) {
-      console.error('Chatbot error:', err);
-      alert('Sorry, something went wrong. Please try again.');
+      console.error(err);
+      alert('Bot error.');
     } finally {
       setLoading(false);
     }
@@ -101,14 +105,9 @@ const GPTChatBot = () => {
     doc.text(`CareCompanionAI Conversation – ${new Date().toLocaleString()}`, 10, y);
     y += 10;
     messages.filter(m => m.role !== 'system').forEach(m => {
-      const label = m.role === 'user' ? 'You: ' : 'Bot: ';
-      const lines = doc.splitTextToSize(`${label}${m.content}`, 180);
-      lines.forEach(line => {
-        if (y > 270) { doc.addPage(); y = 10; }
-        doc.text(line, 10, y);
-        y += 7;
-      });
-      y += 3;
+      doc.text(`${m.role === 'user' ? 'You' : 'Bot'}: ${m.content}`, 10, y);
+      y += 10;
+      if (y > 270) { doc.addPage(); y = 10; }
     });
     doc.save('carecompanion-conversation.pdf');
   };
@@ -122,17 +121,14 @@ const GPTChatBot = () => {
         ))}
       </div>
       <div style={{ display: 'flex', gap: '0.5rem' }}>
-        <input value={input} onChange={e => setInput(e.target.value)} style={{ flex: 1, padding: '0.5rem' }} placeholder="Type or use mic..." />
-        <button onClick={handleSend} disabled={loading} style={{ padding: '0.5rem 1rem' }}>
-          {loading ? 'Sending...' : 'Send'}
-        </button>
-        <button onClick={toggleMic} style={{ padding: '0.5rem 1rem', background: listening ? '#e57373' : '#90caf9' }}>
-          {listening ? '🎤 Stop' : '🎙️ Speak'}
-        </button>
-        <button onClick={handleDownload} style={{ padding: '0.5rem 1rem' }}>📄 Save</button>
+        <input value={input} onChange={e => setInput(e.target.value)} style={{ flex: 1 }} placeholder="Type or use mic..." />
+        <button onClick={handleSend} disabled={loading}>{loading ? 'Sending...' : 'Send'}</button>
+        <button onClick={toggleMic} style={{ background: listening ? '#e57373' : '#90caf9' }}>{listening ? '🎤 Stop' : '🎙️ Speak'}</button>
+        <button onClick={handleDownload}>📄 Save</button>
       </div>
     </div>
   );
 };
 
 export default GPTChatBot;
+

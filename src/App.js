@@ -78,5 +78,15 @@ function App() {
     </div>
   );
 }
+import CoverageCheckForm from './components/CoverageCheckForm';
+
+function App() {
+  return (
+    <div>
+      {/* Other content */}
+      <CoverageCheckForm />
+    </div>
+  );
+}
 
 export default App;

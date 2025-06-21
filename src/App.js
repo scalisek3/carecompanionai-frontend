@@ -1,5 +1,6 @@
 import React from 'react';
 import GPTChatBot from './components/GPTChatBot';
+import CoverageCheckForm from './components/CoverageCheckForm';
 
 function App() {
   return (
@@ -69,16 +70,14 @@ function App() {
         <div style={{ maxWidth: '640px', margin: '0 auto' }}>
           <GPTChatBot />
         </div>
-import CoverageCheckForm from './components/CoverageCheckForm';
+      </section>
 
-function App() {
-  return (
-    <div>
-      {/* Other content */}
-      <CoverageCheckForm />
-    </div>
-  );
-}
+      {/* Coverage Check Section */}
+      <section style={{ backgroundColor: '#fff', padding: '2rem 1rem' }}>
+        <h3 style={{ textAlign: 'center', fontSize: '1.4rem', marginBottom: '1rem' }}>🔍 Check Insurance Coverage</h3>
+        <div style={{ maxWidth: '640px', margin: '0 auto' }}>
+          <CoverageCheckForm />
+        </div>
       </section>
 
       {/* Footer */}

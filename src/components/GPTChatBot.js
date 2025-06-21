@@ -137,7 +137,7 @@ const GPTChatBot = () => {
 
   return (
     <div style={{ maxWidth: '600px', margin: '1rem auto', padding: '1rem', backgroundColor: '#f9f9f9', borderRadius: '8px' }}>
-      <h2 style={{ textAlign: 'center' }}>💬 CareCompanion AI</h2>
+      <h2 style={{ textAlign: 'center' }}> CareCompanionAI</h2>
       <div ref={chatRef} style={{ maxHeight: '300px', overflowY: 'auto', marginBottom: '1rem', background: '#fff', padding: '1rem', borderRadius: '4px' }}>
         {messages.filter(m => m.role !== 'system').map((msg, i) => (
           <div key={i} style={{ marginBottom: '0.5rem' }}>

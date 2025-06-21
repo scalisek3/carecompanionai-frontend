@@ -78,6 +78,7 @@ function App() {
     </div>
   );
 }
+
 import CoverageCheckForm from './components/CoverageCheckForm';
 
 function App() {

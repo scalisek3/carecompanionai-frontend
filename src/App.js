@@ -69,16 +69,6 @@ function App() {
         <div style={{ maxWidth: '640px', margin: '0 auto' }}>
           <GPTChatBot />
         </div>
-      </section>
-
-      {/* Footer */}
-      <footer style={{ padding: '1rem', backgroundColor: '#f0f0f0', textAlign: 'center', fontSize: '0.85rem' }}>
-        &copy; {new Date().getFullYear()} CareCompanion AI. All rights reserved.
-      </footer>
-    </div>
-  );
-}
-
 import CoverageCheckForm from './components/CoverageCheckForm';
 
 function App() {
@@ -86,6 +76,15 @@ function App() {
     <div>
       {/* Other content */}
       <CoverageCheckForm />
+    </div>
+  );
+}
+      </section>
+
+      {/* Footer */}
+      <footer style={{ padding: '1rem', backgroundColor: '#f0f0f0', textAlign: 'center', fontSize: '0.85rem' }}>
+        &copy; {new Date().getFullYear()} CareCompanion AI. All rights reserved.
+      </footer>
     </div>
   );
 }

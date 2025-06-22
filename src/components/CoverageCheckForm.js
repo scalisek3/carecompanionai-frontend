@@ -3,8 +3,11 @@ import axios from 'axios';
 
 const CoverageCheckForm = () => {
   const [memberId, setMemberId] = useState('');
-  const [payerId, setPayerId] = useState(''); // e.g. '87726' for UHC
-  const [dateOfService, setDateOfService] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [dob, setDob] = useState('');
+  const [payerId, setPayerId] = useState('87726'); // UHC
+  const [npi, setNpi] = useState('1234567890'); // Test NPI
   const [response, setResponse] = useState(null);
   const [error, setError] = useState('');
 
@@ -14,35 +17,53 @@ const CoverageCheckForm = () => {
     setResponse(null);
 
     const payload = {
-      tradingPartnerServiceId: payerId,
-      member: {
-        id: memberId
+      provider: { npi },
+      subscriber: {
+        memberId,
+        firstName,
+        lastName,
+        dob
       },
-      serviceDate: dateOfService
+      payer: {
+        id: payerId,
+        name: "UnitedHealthcare"
+      },
+      serviceTypeCodes: ["30"], // General health benefits
+      traceNumber: `CCAI-${Date.now()}`
     };
 
     try {
       const res = await axios.post('https://carecompanionai-website.onrender.com/api/coverage-check', payload);
       setResponse(res.data);
     } catch (err) {
-      setError(err.response?.data?.error || 'Error occurred while checking coverage.');
+      console.error(err.response?.data || err.message);
+      setError(err.response?.data?.error || 'Something went wrong during the coverage check.');
     }
   };
 
   return (
-    <div style={{ maxWidth: 500, margin: '2rem auto', padding: '1rem', backgroundColor: '#f3f3f3', borderRadius: '8px' }}>
-      <h3>🩺 Coverage Check (Availity)</h3>
+    <div style={{ maxWidth: 600, margin: '2rem auto', padding: '1rem', backgroundColor: '#f9f9f9', borderRadius: '8px' }}>
+      <h3>🩺 Insurance Coverage Check (Availity)</h3>
       <form onSubmit={handleSubmit}>
+        <label>First Name:</label>
+        <input value={firstName} onChange={e => setFirstName(e.target.value)} required style={{ width: '100%' }} />
+
+        <label>Last Name:</label>
+        <input value={lastName} onChange={e => setLastName(e.target.value)} required style={{ width: '100%' }} />
+
+        <label>Date of Birth:</label>
+        <input type="date" value={dob} onChange={e => setDob(e.target.value)} required style={{ width: '100%' }} />
+
         <label>Member ID:</label>
-        <input value={memberId} onChange={e => setMemberId(e.target.value)} required style={{ width: '100%', marginBottom: '1rem' }} />
-        
+        <input value={memberId} onChange={e => setMemberId(e.target.value)} required style={{ width: '100%' }} />
+
         <label>Payer ID:</label>
-        <input value={payerId} onChange={e => setPayerId(e.target.value)} required placeholder="e.g. 87726 for UHC" style={{ width: '100%', marginBottom: '1rem' }} />
-        
-        <label>Date of Service:</label>
-        <input type="date" value={dateOfService} onChange={e => setDateOfService(e.target.value)} required style={{ width: '100%', marginBottom: '1rem' }} />
-        
-        <button type="submit">Check Coverage</button>
+        <input value={payerId} onChange={e => setPayerId(e.target.value)} required style={{ width: '100%' }} />
+
+        <label>Provider NPI:</label>
+        <input value={npi} onChange={e => setNpi(e.target.value)} required style={{ width: '100%' }} />
+
+        <button type="submit" style={{ marginTop: '1rem' }}>Check Coverage</button>
       </form>
 
       {response && (

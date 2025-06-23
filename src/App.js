@@ -19,7 +19,7 @@ function App() {
         />
         <h2 style={{ fontSize: '1.6rem', marginBottom: '0.5rem' }}>Navigate Healthcare with Confidence</h2>
         <p style={{ maxWidth: '600px', margin: '0 auto 1rem', fontSize: '1rem' }}>
-          Your AI-powered assistant for navigating your healthcare, avoiding surprise bills, and getting your healthcare questions answered.
+          Your AI-powered assistant for navigating your healthcare options, avoiding surprise bills, and getting your healthcare questions answered.
         </p>
         <button style={{
           backgroundColor: '#2E86AB',

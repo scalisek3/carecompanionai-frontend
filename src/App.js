@@ -16,41 +16,49 @@ function App() {
         <h1 style={{ margin: 0, fontSize: '1.8rem' }}>CareCompanionAI</h1>
       </header>
 
-      {/* Hero Section */}
-      <section style={{
-        padding: '3rem 1rem',
-        backgroundColor: '#F5F3EB', // warm neutral
-        textAlign: 'center'
-      }}>
-        <img
-          src="/images/hero.png"
-          alt="CareCompanionAI - robot and human hand"
-          style={{
-            maxWidth: '300px',
-            height: 'auto',
-            marginBottom: '1.5rem',
-            borderRadius: '8px'
-          }}
-        />
-        <h2 style={{ fontSize: '1.75rem', marginBottom: '0.75rem' }}>
-          Navigate Healthcare with Confidence
-        </h2>
-        <p style={{ maxWidth: '640px', margin: '0 auto 1.5rem', fontSize: '1.1rem' }}>
-          Your AI-powered assistant for navigating your healthcare, avoiding surprise bills, and getting your healthcare questions answered.
-        </p>
-        <button style={{
-          backgroundColor: '#C1B398', // soft tan
-          color: '#fff',
-          border: 'none',
-          padding: '0.6rem 1.5rem',
-          fontSize: '1rem',
-          borderRadius: '6px',
-          cursor: 'pointer',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-        }}>
-          Get Started
-        </button>
-      </section>
+     {/* Hero Section */}
+<section
+  style={{
+    position: 'relative',
+    height: '60vh',
+    backgroundImage: `url("/images/hero.png")`,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    color: '#2e2e2e',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    textAlign: 'center'
+  }}
+>
+  <div
+    style={{
+      backgroundColor: 'rgba(255, 255, 255, 0.8)',
+      padding: '2rem',
+      borderRadius: '12px',
+      maxWidth: '700px',
+      boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+    }}
+  >
+    <h2 style={{ fontSize: '2rem', marginBottom: '1rem' }}>Navigate Healthcare with Confidence</h2>
+    <p style={{ fontSize: '1.1rem', marginBottom: '1.5rem' }}>
+      Your AI-powered assistant for understanding your Healthcare options, avoiding surprise bills, and finding care options tailored to you.
+    </p>
+    <button
+      style={{
+        backgroundColor: '#4A775B',
+        color: 'white',
+        border: 'none',
+        padding: '0.7rem 1.5rem',
+        fontSize: '1rem',
+        borderRadius: '6px',
+        cursor: 'pointer'
+      }}
+    >
+      Get Started
+    </button>
+  </div>
+</section>
 
       {/* How It Works */}
       <section style={{ padding: '2rem 1rem', backgroundColor: '#FDFCF8', textAlign: 'center' }}>

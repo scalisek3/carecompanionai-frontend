@@ -59,7 +59,7 @@ function App() {
 </section>
 
       {/* How It Works */}
-      <section style={{ padding: '2rem 1rem', backgroundColor: '#FDFCF8', textAlign: 'center' }}>
+      <section style={{ padding: '1.5rem 1rem', backgroundColor: '#FDFCF8', textAlign: 'center' }}>
         <h3 style={{ fontSize: '1.5rem', marginBottom: '1.5rem' }}>How It Works</h3>
         <div style={{
           display: 'flex',
@@ -69,7 +69,7 @@ function App() {
         }}>
           {[
             ['1. Ask a Question', 'Type or speak your healthcare question into the AI assistant.'],
-            ['2. Get Clear Answers', 'Receive step-by-step guidance tailored to your situation.'],
+            ['2. Get Clear Answers', 'Receive step-by-step guidance and/or suggestions tailored to your situation.'],
             ['3. Take Action', 'Know what to do next — no confusion, no stress.']
           ].map(([title, desc], idx) => (
             <div key={idx} style={{

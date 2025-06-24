@@ -9,7 +9,7 @@ const GPTChatBot = () => {
     const saved = localStorage.getItem('carechat');
     return saved ? JSON.parse(saved) : [{
       role: 'system',
-      content: `You are CareCompanionAI, a helpful AI that provides real-time healthcare answers using trusted U.S. government and clinical sources.`
+      content: `You are CareCompanionAI, a helpful assistant for seniors navigating Medicare, Medicaid, UnitedHealthcare, and elder care. Provide real-time info including provider names, phone numbers, and links. Never tell the user to look it up — you do it.`
     }];
   });
 
@@ -18,6 +18,47 @@ const GPTChatBot = () => {
   const [listening, setListening] = useState(false);
   const recognitionRef = useRef(null);
   const chatRef = useRef(null);
+
+  const callRealtimeAPIs = async (query) => {
+    const results = [];
+
+    try {
+      const [medline, fda, trials] = await Promise.all([
+        axios.get(`/api/medline?q=${query}`),
+        axios.get(`/api/openfda?q=${query}`),
+        axios.get(`/api/clinicaltrials?q=${query}`)
+      ]);
+
+      if (medline.data.summary) {
+        results.push({
+          role: 'assistant',
+          content: `📚 **Definition from MedlinePlus**:\n${medline.data.summary}`
+        });
+      }
+
+      if (fda.data.results && fda.data.results.length > 0) {
+        results.push({
+          role: 'assistant',
+          content: `💊 **Drug Info from OpenFDA**:\n${fda.data.results.slice(0, 2).map(d =>
+            `• ${d.openfda.brand_name?.[0] || 'Unnamed'} (${d.openfda.generic_name?.[0] || 'Unknown'}) - ${d.purpose?.[0] || 'No description'}`
+          ).join('\n')}`
+        });
+      }
+
+      if (trials.data && trials.data.length > 0) {
+        results.push({
+          role: 'assistant',
+          content: `🧪 **Related Clinical Trials**:\n` + trials.data.slice(0, 2).map(t =>
+            `• ${t.title} – [Details](${t.url})`
+          ).join('\n')
+        });
+      }
+    } catch (err) {
+      results.push({ role: 'assistant', content: '⚠️ Error fetching real-time healthcare data.' });
+    }
+
+    return results;
+  };
 
   useEffect(() => {
     if (SpeechRecognition) {
@@ -44,69 +85,32 @@ const GPTChatBot = () => {
     setListening(!listening);
   };
 
-  const checkKeyword = async (text) => {
-    const lower = text.toLowerCase();
-
-    if (lower.includes('drug') || lower.includes('side effects') || lower.includes('fda')) {
-      const keyword = text.split(' ').pop();
-      const res = await axios.get(`https://api.fda.gov/drug/label.json?search=${keyword}&limit=1`);
-      const result = res.data.results?.[0];
-      return result ? `According to the FDA, here is information on ${keyword}:\n\n${result.description || result.indications_and_usage?.[0] || 'No summary found.'}` : null;
-    }
-
-    if (lower.includes('define') || lower.includes('what is')) {
-      const term = text.split(' ').slice(-1)[0];
-      const res = await axios.get(`https://wsearch.nlm.nih.gov/ws/query?db=healthTopics&term=${term}&retmax=1`);
-      return res?.data?.includes('<content>') ? `According to MedlinePlus, here is information on ${term}.` : null;
-    }
-
-    if (lower.includes('nursing home') || lower.includes('hospice')) {
-      const type = lower.includes('hospice') ? 'hospice' : 'nursing_home';
-      const location = text.match(/in ([A-Za-z\s]+,?\s?[A-Z]{2})/)?.[1];
-      const url = `/api/cms-data?type=${type}&location=${location || ''}`;
-      const res = await axios.get(url);
-      return res.data.length > 0 ? `Here are ${type.replace('_', ' ')} options:\n\n${res.data.map(p => `• ${p.name} (${p.city}, ${p.state})\n📞 ${p.phone}`).join('\n\n')}` : null;
-    }
-
-    if (lower.includes('clinical trial') || lower.includes('study')) {
-      const term = text.split(' ').pop();
-      const res = await axios.get(`https://clinicaltrials.gov/api/query/study_fields?expr=${term}&fields=BriefTitle,LocationCity,OverallStatus&min_rnk=1&max_rnk=3&fmt=json`);
-      const trials = res.data.StudyFieldsResponse.StudyFields;
-      return trials.length ? `Here are current clinical trials for "${term}":\n\n` +
-        trials.map(t => `• ${t.BriefTitle[0]} — Status: ${t.OverallStatus[0]}, City: ${t.LocationCity[0] || 'N/A'}`).join('\n\n') : null;
-    }
-
-    return null;
-  };
-
   const handleSend = async () => {
     if (!input.trim()) return;
-    const userMessage = { role: 'user', content: input.trim() };
 
-    setMessages(prev => [...prev, userMessage]);
+    const userMessage = { role: 'user', content: input.trim() };
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
     setInput('');
     setLoading(true);
 
-    try {
-      const extra = await checkKeyword(input);
-      if (extra) {
-        setMessages(prev => [...prev, { role: 'assistant', content: extra }]);
-        setLoading(false);
-        return;
-      }
+    const assistantMessage = [];
 
-      const res = await axios.post('https://carecompanionai-website.onrender.com/api/chat-with-tools', {
-        messages: [...messages, userMessage]
-      });
-
-      const reply = res.data.choices?.[0]?.message;
-      setMessages(prev => [...prev, reply]);
-    } catch (err) {
-      console.error(err);
-      alert('Error from assistant.');
-    } finally {
-      setLoading(false);
+    // Real-time API lookups (definition, drug, trial)
+    const realTimeResults = await callRealtimeAPIs(input);
+    if (realTimeResults.length > 0) {
+      setMessages([...newMessages, ...realTimeResults]);
     }
+
+    try {
+      const res = await axios.post('/api/chat-with-tools', { messages: [...newMessages, ...realTimeResults] });
+      assistantMessage.push(res.data.choices[0].message);
+    } catch (err) {
+      assistantMessage.push({ role: 'assistant', content: '⚠️ Error processing request.' });
+    }
+
+    setMessages([...newMessages, ...realTimeResults, ...assistantMessage]);
+    setLoading(false);
   };
 
   const handleDownload = () => {
@@ -120,38 +124,41 @@ const GPTChatBot = () => {
       y += 10;
       if (y > 270) { doc.addPage(); y = 10; }
     });
-    doc.save('carecompanion-conversation.pdf');
+    doc.save('carecompanionai-conversation.pdf');
   };
 
   const handleNewChat = () => {
-    const reset = [{
+    const newStart = [{
       role: 'system',
-      content: `You are CareCompanionAI, a helpful AI that provides real-time healthcare answers using trusted U.S. government and clinical sources.`
+      content: `You are CareCompanionAI, an expert assistant for Medicare, Medicaid, UnitedHealthcare, and elder care. Provide accurate local results and fetch real-time healthcare data automatically.`
     }];
-    setMessages(reset);
-    localStorage.setItem('carechat', JSON.stringify(reset));
+    localStorage.setItem('carechat', JSON.stringify(newStart));
+    setMessages(newStart);
     setInput('');
   };
 
   return (
-    <div style={{ maxWidth: '600px', margin: '1rem auto', padding: '1rem', backgroundColor: '#f9f9f9', borderRadius: '8px' }}>
-      <h2 style={{ textAlign: 'center' }}>💬 CareCompanion AI</h2>
-      <div ref={chatRef} style={{ maxHeight: '300px', overflowY: 'auto', marginBottom: '1rem', background: '#fff', padding: '1rem', borderRadius: '4px' }}>
+    <div style={{ maxWidth: '640px', margin: '1rem auto', padding: '1rem', backgroundColor: '#fefefe', borderRadius: '8px' }}>
+      <h3 style={{ textAlign: 'center' }}>💬 Chat with CareCompanionAI</h3>
+      <div ref={chatRef} style={{ maxHeight: '300px', overflowY: 'auto', background: '#fff', padding: '1rem', borderRadius: '4px' }}>
         {messages.filter(m => m.role !== 'system').map((msg, i) => (
-          <div key={i}><strong>{msg.role === 'user' ? 'You' : 'Bot'}:</strong> {msg.content}</div>
+          <div key={i} style={{ marginBottom: '0.5rem' }}>
+            <strong>{msg.role === 'user' ? 'You' : 'Bot'}:</strong> <span dangerouslySetInnerHTML={{ __html: msg.content }} />
+          </div>
         ))}
       </div>
-      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-        <input value={input} onChange={e => setInput(e.target.value)} style={{ flex: 1 }} placeholder="Ask about hospice, FDA drugs, trials..." />
+      <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
+        <input value={input} onChange={e => setInput(e.target.value)} placeholder="Ask a health question..." style={{ flex: 1 }} />
         <button onClick={handleSend} disabled={loading}>{loading ? 'Sending...' : 'Send'}</button>
-        <button onClick={toggleMic} style={{ background: listening ? '#e57373' : '#90caf9' }}>{listening ? '🎤 Stop' : '🎙️ Speak'}</button>
+        <button onClick={toggleMic} style={{ background: listening ? '#e57373' : '#a5d6a7' }}>{listening ? '🎤 Stop' : '🎙️ Speak'}</button>
         <button onClick={handleDownload}>📄 Save</button>
-        <button onClick={handleNewChat} style={{ backgroundColor: '#ffc107' }}>🆕 New Chat</button>
+        <button onClick={handleNewChat} style={{ background: '#ffe082' }}>🆕 New Chat</button>
       </div>
     </div>
   );
 };
 
 export default GPTChatBot;
+
 
 

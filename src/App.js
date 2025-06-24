@@ -20,7 +20,7 @@ function App() {
 <section
   style={{
     position: 'relative',
-    height: '60vh',
+    height: '50vh',
     backgroundImage: `url("/images/hero.png")`, // your uploaded higher-quality image
     backgroundSize: 'contain',
     backgroundPosition: 'center',
@@ -32,7 +32,7 @@ function App() {
   <div
     style={{
       backgroundColor: 'rgba(255, 255, 255, 0.8)',
-      padding: '2rem',
+      padding: '1.5rem',
       borderRadius: '12px',
       maxWidth: '700px',
       boxShadow: '0 4px 12px rgba(0,0,0,0.1)'

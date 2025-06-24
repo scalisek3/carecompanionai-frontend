@@ -21,14 +21,12 @@ function App() {
   style={{
     position: 'relative',
     height: '60vh',
-    backgroundImage: `url("/images/hero.png")`,
+    backgroundImage: `url("/images/hero1.png")`, // your uploaded higher-quality image
     backgroundSize: 'cover',
-    backgroundPosition: 'center',
-    color: '#2e2e2e',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    textAlign: 'center'
+    backgroundPosition: 'center center',
+    backgroundRepeat: 'no-repeat',
+    backgroundAttachment: 'scroll',
+    imageRendering: 'auto' // helps browser use default best rendering
   }}
 >
   <div

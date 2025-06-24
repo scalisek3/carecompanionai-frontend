@@ -21,9 +21,9 @@ function App() {
   style={{
     position: 'relative',
     height: '60vh',
-    backgroundImage: `url("/images/hero1.png")`, // your uploaded higher-quality image
-    backgroundSize: 'cover',
-    backgroundPosition: 'center center',
+    backgroundImage: `url("/images/hero.png")`, // your uploaded higher-quality image
+    backgroundSize: 'contain',
+    backgroundPosition: 'center',
     backgroundRepeat: 'no-repeat',
     backgroundAttachment: 'scroll',
     imageRendering: 'auto' // helps browser use default best rendering

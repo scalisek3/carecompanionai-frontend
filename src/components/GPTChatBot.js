@@ -94,7 +94,7 @@ const GPTChatBot = () => {
       }
     } catch (err) {
       console.error(err);
-      setMessages(msgs => [...msgs, { role: 'assistant', content: ⚠️ Error fetching real-time healthcare data.' }]);
+      setMessages(msgs => [...msgs, { role: 'assistant', content: 'Warning: Error fetching real-time healthcare data.' }]);
     } finally {
       setLoading(false);
     }

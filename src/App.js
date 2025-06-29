@@ -13,7 +13,7 @@ function App() {
       <section style={{
         position: 'relative',
         height: '75vh',
-        backgroundImage: 'url("/images/hero1.png")',
+        backgroundImage: 'url("/public/images/hero.png")',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         display: 'flex',

@@ -31,8 +31,8 @@ function App() {
         }}>
           <h2 style={{ fontSize: '2rem', marginBottom: '1rem' }}>Navigate Healthcare with Confidence</h2>
           <p style={{ fontSize: '1.1rem' }}>
-            Your AI-powered assistant for understanding your healthcare options,
-            avoiding surprise bills, and finding care tailored to you.
+            Where Healthcare and Artificial Intelligence intersect to be Your AI-powered assistant. Understand your healthcare options,
+            avoid surprise bills, and find care best tailored to you.
           </p>
           <button style={{
             marginTop: '1.5rem',

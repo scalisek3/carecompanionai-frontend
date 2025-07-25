@@ -4,13 +4,13 @@ import ComparisonTable from './components/ComparisonTable';
 ...
       </section>
 
-+     {/* Comparison Table Section */}
-+     <section style={{ padding: '3rem 1rem', backgroundColor: '#fff' }}>
-+       <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
-+         <h3 style={{ textAlign: 'center', marginBottom: '2rem', fontSize: '1.5rem' }}>How We Compare</h3>
-+         <ComparisonTable />
-+       </div>
-+     </section>
+{/* Comparison Table Section */}
+<section style={{ padding: '3rem 1rem', backgroundColor: '#fff' }}>
+<div style={{ maxWidth: '1000px', margin: '0 auto' }}>
+<h3 style={{ textAlign: 'center', marginBottom: '2rem', fontSize: '1.5rem' }}>How We Compare</h3>
+<ComparisonTable />
+</div>
+</section>
 
 function App() {
   return (
@@ -98,9 +98,9 @@ function App() {
           textAlign: 'left',
           fontSize: '1.05rem'
         }}>
-          <li>✅ Easy for seniors and caregivers to use</li>
-          <li>✅ Prevent surprise medical bills</li>
-          <li>✅ Understand your Medicare options</li>
+          <li>✅ Easy for Seniors and Caregivers to use</li>
+          <li>✅ Prevent Surprise Medical Bills</li>
+          <li>✅ Understand your Medicare Options</li>
           <li>✅ Get peace of mind from trusted and knowledgeable AI help</li>
         </ul>
       </section>

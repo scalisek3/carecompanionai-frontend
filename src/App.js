@@ -1,6 +1,6 @@
 import React from 'react';
 import GPTChatBot from './components/GPTChatBot';
-+ import ComparisonTable from './components/ComparisonTable';
+import ComparisonTable from './components/ComparisonTable';
 ...
       </section>
 

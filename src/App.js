@@ -1,5 +1,16 @@
 import React from 'react';
 import GPTChatBot from './components/GPTChatBot';
++ import ComparisonTable from './components/ComparisonTable';
+...
+      </section>
+
++     {/* Comparison Table Section */}
++     <section style={{ padding: '3rem 1rem', backgroundColor: '#fff' }}>
++       <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
++         <h3 style={{ textAlign: 'center', marginBottom: '2rem', fontSize: '1.5rem' }}>How We Compare</h3>
++         <ComparisonTable />
++       </div>
++     </section>
 
 function App() {
   return (

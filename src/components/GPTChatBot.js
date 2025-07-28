@@ -4,23 +4,15 @@ import jsPDF from 'jspdf';
 
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
-const extractLocation = (text) => {
-  const match = text.match(/\b(?:in|near|around|from|to)\s([A-Z][a-z]+)(?:,\s?([A-Z]{2}))?/i);
-  return match ? { city: match[1], state: match[2] || 'CA' } : null;
-};
-
-const extractKeyword = (text) => {
-  const keywords = ['hospice', 'palliative', 'nursing', 'geriatrics', 'prescription', 'drug', 'medication', 'device', 'trial'];
-  return keywords.find(k => text.toLowerCase().includes(k)) || null;
-};
-
 const GPTChatBot = () => {
   const [messages, setMessages] = useState(() => {
     const saved = localStorage.getItem('carechat');
-    return saved ? JSON.parse(saved) : [{
-      role: 'system',
-      content: `You are CareCompanionAI, an expert assistant for Medicare, Medicaid, UnitedHealthcare, and senior care. Provide real answers, not just suggestions. Always help the user by doing the work.`
-    }];
+    return saved ? JSON.parse(saved) : [
+      {
+        role: 'system',
+        content: `You are CareCompanionAI, an expert assistant for Medicare, Medicaid, UnitedHealthcare, and senior care. Provide real answers, not just suggestions. Always help the user by doing the work.`
+      }
+    ];
   });
 
   const [input, setInput] = useState('');
@@ -29,6 +21,7 @@ const GPTChatBot = () => {
   const recognitionRef = useRef(null);
   const chatRef = useRef(null);
 
+  // 🎙️ Voice input setup
   useEffect(() => {
     if (SpeechRecognition) {
       recognitionRef.current = new SpeechRecognition();
@@ -43,6 +36,7 @@ const GPTChatBot = () => {
     }
   }, []);
 
+  // Auto scroll & persist chat
   useEffect(() => {
     localStorage.setItem('carechat', JSON.stringify(messages));
     chatRef.current?.scrollTo(0, chatRef.current.scrollHeight);
@@ -62,39 +56,59 @@ const GPTChatBot = () => {
     setInput('');
     setLoading(true);
 
-    const keyword = extractKeyword(userText);
-    const location = extractLocation(userText);
-
     try {
-      if (keyword && location && ['hospice', 'palliative', 'nursing', 'geriatrics'].includes(keyword)) {
-        const providerRes = await axios.get(`https://carecompanionai-website.onrender.com/api/medicare-providers?city=${location.city}&state=${location.state}&keyword=${keyword}`);
-        const results = providerRes.data?.providers || [];
-        if (results.length > 0) {
-          const content = `Here are some ${keyword} providers near ${location.city}, ${location.state}:\n\n` +
-            results.map(p => `• ${p.name} - ${p.specialty}\n  ${p.address}\n  📞 ${p.phone || 'N/A'}`).join('\n\n');
-          setMessages(msgs => [...msgs, { role: 'assistant', content }]);
+      // Send messages to backend
+      const res = await axios.post('https://carecompanionai-website.onrender.com/api/chat-with-tools', { messages: newMessages });
+
+      // Check if backend returned a tool result
+      if (res.data.tool) {
+        let content = '';
+
+        switch (res.data.tool) {
+          case 'getMedicareProviders':
+            const providers = res.data.result;
+            content = providers.length
+              ? `Here are providers matching your request:\n\n` +
+                providers.map(p => `• ${p.name} - ${p.specialty}\n  ${p.address}\n  📞 ${p.phone}`).join('\n\n')
+              : 'No providers found for that location.';
+            break;
+
+          case 'getMedlineSummary':
+            content = `📖 Health Topic Summary:\n\n${res.data.result}`;
+            break;
+
+          case 'getOpenFDA':
+            content = res.data.result.length
+              ? res.data.result.map(drug => `• ${drug.openfda.brand_name?.[0] || 'Unknown'}: ${drug.indications_and_usage?.[0] || 'No usage info'}`).join('\n\n')
+              : 'No drug information found.';
+            break;
+
+          case 'getClinicalTrials':
+            content = res.data.result.length
+              ? `🔬 Clinical Trials:\n\n` +
+                res.data.result.map(t => `• ${t.title}\n  🔗 ${t.url}`).join('\n\n')
+              : 'No clinical trials found.';
+            break;
+
+          default:
+            content = '⚠️ Unknown tool response.';
         }
-      } else if (keyword && ['drug', 'prescription', 'medication'].includes(keyword)) {
-        const drugRes = await axios.get(`https://carecompanionai-website.onrender.com/api/openfda?query=${userText}`);
-        const data = drugRes.data?.info || 'No drug data found.';
-        setMessages(msgs => [...msgs, { role: 'assistant', content: `🔍 Drug info:\n${data}` }]);
-      } else if (keyword === 'device') {
-        const deviceRes = await axios.get(`https://carecompanionai-website.onrender.com/api/openfda-device?query=${userText}`);
-        const data = deviceRes.data?.info || 'No device data found.';
-        setMessages(msgs => [...msgs, { role: 'assistant', content: `🔍 Medical device info:\n${data}` }]);
-      } else if (keyword === 'trial') {
-        const trialRes = await axios.get(`https://carecompanionai-website.onrender.com/api/clinical-trials?query=${userText}`);
-        const trials = trialRes.data?.trials || [];
-        const content = trials.length ? trials.map(t => `• ${t.title}\n  Status: ${t.status}\n  🔗 ${t.url}`).join('\n\n') : 'No trials found.';
+
         setMessages(msgs => [...msgs, { role: 'assistant', content }]);
       } else {
-        const res = await axios.post('https://carecompanionai-website.onrender.com/api/chat-with-tools', { messages: newMessages });
-        const reply = res.data.choices?.[0]?.message || { role: 'assistant', content: '❌ No reply received.' };
+        // Normal GPT text reply
+        const reply = res.data.choices?.[0]?.message || {
+          role: 'assistant',
+          content: '⚠️ No reply received.'
+        };
         setMessages(msgs => [...msgs, reply]);
       }
     } catch (err) {
-      console.error(err);
-      setMessages(msgs => [...msgs, { role: 'assistant', content: 'Warning: Error fetching real-time healthcare data.' }]);
+      console.error('Chatbot error:', err);
+      setMessages(msgs => [
+        ...msgs,
+        { role: 'assistant', content: '⚠️ Error fetching real-time healthcare data.' }
+      ]);
     } finally {
       setLoading(false);
     }
@@ -176,4 +190,3 @@ const GPTChatBot = () => {
 };
 
 export default GPTChatBot;
-
